@@ -3,14 +3,14 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace CoolBro.KeyboardMarkups;
 
-public partial class AccountMarkup
+public partial class ReplyMarkup
 {
     public static InlineKeyboardMarkup Account = new(new[]
     {
         InlineKeyboardButton.WithCallbackData(Buttons.Support, "Support")
     });
 
-    public static InlineKeyboardMarkup GoBackToAccount = new(new[]
+    public static InlineKeyboardMarkup GoToMenu = new(new[]
     {
         InlineKeyboardButton.WithCallbackData(Buttons.GoBackToAccount, "Account")
     });

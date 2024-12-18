@@ -17,7 +17,7 @@ public class MessageRepository(
 
     public async Task<List<Message>?> GetMessagesById(int id, int take, int skip) =>
         await Query
-        .Where(m => m.UserId == id)
+        .Where(m => m.Id == id)
         .OrderBy(m => m.Id)
         .Skip(skip)
         .Take(take)
@@ -30,4 +30,8 @@ public class MessageRepository(
         .Skip(skip)
         .Take(take)
         .ToListAsync();
+
+    public async Task DeleteAsync(int id) =>
+        await RemoveAsync(await Query.FirstAsync(m => m.Id == id));
+
 }

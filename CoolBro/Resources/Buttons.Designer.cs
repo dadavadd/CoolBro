@@ -61,6 +61,42 @@ namespace CoolBro.Resources {
         }
         
         /// <summary>
+        ///   Ищет локализованную строку, похожую на ⬅ Назад.
+        /// </summary>
+        internal static string Backward {
+            get {
+                return ResourceManager.GetString("Backward", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на 👀Написать.
+        /// </summary>
+        internal static string CreateTicket {
+            get {
+                return ResourceManager.GetString("CreateTicket", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на 🗑Удалить тикет.
+        /// </summary>
+        internal static string DeleteTicket {
+            get {
+                return ResourceManager.GetString("DeleteTicket", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Вперёд ➡.
+        /// </summary>
+        internal static string Forward {
+            get {
+                return ResourceManager.GetString("Forward", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Ищет локализованную строку, похожую на ❌Назад.
         /// </summary>
         internal static string GoBackToAccount {
@@ -70,11 +106,38 @@ namespace CoolBro.Resources {
         }
         
         /// <summary>
+        ///   Ищет локализованную строку, похожую на ✨Мои обращения.
+        /// </summary>
+        internal static string MyTtickets {
+            get {
+                return ResourceManager.GetString("MyTtickets", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Нет.
+        /// </summary>
+        internal static string No {
+            get {
+                return ResourceManager.GetString("No", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Ищет локализованную строку, похожую на 🎃 Поддержка.
         /// </summary>
         internal static string Support {
             get {
                 return ResourceManager.GetString("Support", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Да.
+        /// </summary>
+        internal static string Yes {
+            get {
+                return ResourceManager.GetString("Yes", resourceCulture);
             }
         }
     }

@@ -61,6 +61,24 @@ namespace CoolBro.Resources {
         }
         
         /// <summary>
+        ///   Ищет локализованную строку, похожую на Команда не найдена🤔.
+        /// </summary>
+        internal static string CommandNotFound {
+            get {
+                return ResourceManager.GetString("CommandNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на У вас пока нет тикетов.
+        /// </summary>
+        internal static string DontHaveTicketsYet {
+            get {
+                return ResourceManager.GetString("DontHaveTicketsYet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Ищет локализованную строку, похожую на ✨Введите сообщение которое хотите отправить ниже:.
         /// </summary>
         internal static string EnterYouMessage {
@@ -88,11 +106,82 @@ namespace CoolBro.Resources {
         }
         
         /// <summary>
-        ///   Ищет локализованную строку, похожую на .
+        ///   Ищет локализованную строку, похожую на Здесь вы можете управлять вашими обращениями, либо написать новое:.
         /// </summary>
-        internal static string String1 {
+        internal static string SupportMenu {
             get {
-                return ResourceManager.GetString("String1", resourceCulture);
+                return ResourceManager.GetString("SupportMenu", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Вы уверены что хотите удалить обращение?.
+        /// </summary>
+        internal static string TicketDeleteConfirmed {
+            get {
+                return ResourceManager.GetString("TicketDeleteConfirmed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на 👀 Тикет №{0}
+        ///
+        ///⚫️Текст тикета: {1}
+        ///
+        ///🎇 Прочитано: {2}
+        ///
+        ///🕘 Дата создания: {3}.
+        /// </summary>
+        internal static string TicketInfo {
+            get {
+                return ResourceManager.GetString("TicketInfo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на 🎇Обращение успешно создано. Вы можете вернуться назад:.
+        /// </summary>
+        internal static string TicketIsCreated {
+            get {
+                return ResourceManager.GetString("TicketIsCreated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Тикет не найден😢.
+        /// </summary>
+        internal static string TicketNotFound {
+            get {
+                return ResourceManager.GetString("TicketNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на ✅Тикет успешно удалён.
+        /// </summary>
+        internal static string TicketSuccesfullyDeleted {
+            get {
+                return ResourceManager.GetString("TicketSuccesfullyDeleted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на 😔Вы можете создавать тикеты только раз в 10 часов. 
+        ///
+        ///Последний тикет был создан {0}..
+        /// </summary>
+        internal static string TicketTimedOut {
+            get {
+                return ResourceManager.GetString("TicketTimedOut", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Ваши тикеты:.
+        /// </summary>
+        internal static string YourTickets {
+            get {
+                return ResourceManager.GetString("YourTickets", resourceCulture);
             }
         }
     }

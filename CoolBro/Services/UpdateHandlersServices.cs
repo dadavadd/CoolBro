@@ -9,6 +9,7 @@ using CoolBro.Resources;
 using CoolBro.UpdateHandlers;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using Telegram.Bot;
 
 namespace CoolBro.Services;
@@ -35,7 +36,8 @@ public class UpdateHandlersServices(
         var session = await GetOrCreateSessionAsync(user);
         var sessionService = new SessionManager(sessionRepository, session);
 
-        var hasHandled = false;
+        var hasMatchingHandler = false;
+        var hasExecutedHandler = false;
 
         foreach (var handler in UpdateHandlers)
         {
@@ -46,19 +48,27 @@ public class UpdateHandlersServices(
             handlerInstance.Session = sessionService;
 
             var roleAttr = handler.GetCustomAttribute<RequiredRole>();
-            if (roleAttr is not null && user.Role < roleAttr.Role) continue;
 
-            var invoked = await TryInvokeHandlerMethodAsync(handlerInstance);
+            if (roleAttr is not null && user.Role < roleAttr.Role)
+                continue;
 
-            if (invoked) hasHandled = true;
+            hasMatchingHandler = true;
+
+            if (await TryInvokeHandlerMethodAsync(handlerInstance))
+            {
+                hasExecutedHandler = true;
+                break;
+            }
         }
 
-        if (!hasHandled)
+        if (!hasExecutedHandler)
         {
             await client.SendMessage(
                 chatId: update.UserId,
-                text: "Функция не найдена!",
-                replyMarkup: AccountMarkup.GoBackToAccount);
+                text: hasMatchingHandler
+                    ? Messages.CommandNotFound
+                    : Messages.NotEnoughPrivileges, 
+                replyMarkup: ReplyMarkup.GoToMenu);
         }
     }
 
@@ -84,6 +94,16 @@ public class UpdateHandlersServices(
             var callbackAttr = method.GetCustomAttribute<CallbackDataAttribute>();
             if (callbackAttr != null &&
                 handler.Update.CallbackQuery?.Data == callbackAttr.Command)
+            {
+                await (Task)method.Invoke(handler, null)!;
+                await Console.Out.WriteLineAsync($"Invoked: {method.DeclaringType!.Name}.{method.Name}");
+                return true;
+            }
+
+            var callbackRegexAttr = method.GetCustomAttribute<CallbackDataRegexAttribute>();
+            if (callbackRegexAttr != null &&
+                handler.Update.CallbackQuery?.Data != null &&
+                Regex.IsMatch(handler.Update.CallbackQuery.Data, callbackRegexAttr.Pattern, callbackRegexAttr.Options))
             {
                 await (Task)method.Invoke(handler, null)!;
                 await Console.Out.WriteLineAsync($"Invoked: {method.DeclaringType!.Name}.{method.Name}");

@@ -9,7 +9,7 @@ using CoolBro.UpdateHandlers;
 
 IServiceCollection services = new ServiceCollection();
 services.AddInfrastructure();
-services.AddSingleton<ITelegramBotClient, TelegramBotClient>(t => new(token: "8179305311:AAG4wkHz0cj5fx0H1v-aiNokKBGxovbPJrY"));
+services.AddSingleton<ITelegramBotClient, TelegramBotClient>(t => new(token: ""));
 services.AddSingleton<UpdateHandlersServices>();
 services.AddSingleton<IUpdateHandler, TelegramUpdateHandler>();
 

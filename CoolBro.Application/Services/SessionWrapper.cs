@@ -8,7 +8,7 @@ public class SessionWrapper(
     ISessionRepository sessionRepository,
     State userState)
 {
-    private Dictionary<string, string> StateData = new();
+    private static Dictionary<string, string> StateData = new();
 
     public T Get<T>(string key)
     {

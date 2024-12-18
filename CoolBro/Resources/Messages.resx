@@ -117,6 +117,12 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="CommandNotFound" xml:space="preserve">
+    <value>Команда не найдена🤔</value>
+  </data>
+  <data name="DontHaveTicketsYet" xml:space="preserve">
+    <value>У вас пока нет тикетов</value>
+  </data>
   <data name="EnterYouMessage" xml:space="preserve">
     <value>✨Введите сообщение которое хотите отправить ниже:</value>
   </data>
@@ -126,7 +132,36 @@
   <data name="NotEnoughPrivileges" xml:space="preserve">
     <value>Функция недоступна.</value>
   </data>
-  <data name="String1" xml:space="preserve">
-    <value />
+  <data name="SupportMenu" xml:space="preserve">
+    <value>Здесь вы можете управлять вашими обращениями, либо написать новое:</value>
+  </data>
+  <data name="TicketDeleteConfirmed" xml:space="preserve">
+    <value>Вы уверены что хотите удалить обращение?</value>
+  </data>
+  <data name="TicketInfo" xml:space="preserve">
+    <value>👀 Тикет №{0}
+
+⚫️Текст тикета: {1}
+
+🎇 Прочитано: {2}
+
+🕘 Дата создания: {3}</value>
+  </data>
+  <data name="TicketIsCreated" xml:space="preserve">
+    <value>🎇Обращение успешно создано. Вы можете вернуться назад:</value>
+  </data>
+  <data name="TicketNotFound" xml:space="preserve">
+    <value>Тикет не найден😢</value>
+  </data>
+  <data name="TicketSuccesfullyDeleted" xml:space="preserve">
+    <value>✅Тикет успешно удалён</value>
+  </data>
+  <data name="TicketTimedOut" xml:space="preserve">
+    <value>😔Вы можете создавать тикеты только раз в 10 часов. 
+
+Последний тикет был создан {0}.</value>
+  </data>
+  <data name="YourTickets" xml:space="preserve">
+    <value>Ваши тикеты:</value>
   </data>
 </root>

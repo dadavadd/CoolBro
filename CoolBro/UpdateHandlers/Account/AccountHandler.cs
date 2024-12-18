@@ -18,6 +18,6 @@ public class AccountHandler : UpdateHandlerBase
         await Client.SendMessage(
             chatId: Update.UserId,
             text: string.Format(Messages.MainMenu, Update.FirstName),
-            replyMarkup: AccountMarkup.Account);
+            replyMarkup: ReplyMarkup.Account);
     }
 }
