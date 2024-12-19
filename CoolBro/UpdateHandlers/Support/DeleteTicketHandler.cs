@@ -42,7 +42,7 @@ public class DeleteTicketHandler(
             return;
         }
 
-        await messageRepository.DeleteAsync(ticketId);
+        await messageRepository.DeleteMessageAsync(ticketId);
 
         await Session.ClearStateAsync();
 

@@ -15,6 +15,8 @@ services.AddSingleton<ITelegramBotClient, TelegramBotClient>(t => new(token: "81
 services.AddSingleton<UpdateHandlersService>();
 services.AddSingleton<IUpdateHandler, TelegramUpdateHandler>();
 
+
+
 using var buildProvider = services.BuildServiceProvider();
 
 var client = buildProvider.GetRequiredService<ITelegramBotClient>();

@@ -117,17 +117,47 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="AdminResponseForTicket" xml:space="preserve">
+    <value>✨Ответ администрации на ваш тикет №{0}
+
+Чтобы посмотреть, нажмите на кнопку ниже:</value>
+  </data>
+  <data name="AdminTicket" xml:space="preserve">
+    <value>ID тикета: {0}
+
+Текст тикета: {1}
+
+Дата создания: {2}
+
+Ваш ответ: {3}
+
+Выберите что хотите  с ним сделать:</value>
+  </data>
+  <data name="AnswerTicketInfo" xml:space="preserve">
+    <value>👀 Тикет №{0}
+
+⚫️Текст тикета: {1}
+
+🎇 Прочитано: {2}
+
+🕘 Дата создания: {3}
+
+🙃 Ответ: {4}</value>
+  </data>
   <data name="CommandNotFound" xml:space="preserve">
     <value>Команда не найдена🤔</value>
   </data>
   <data name="DontHaveTicketsYet" xml:space="preserve">
     <value>У вас пока нет тикетов</value>
   </data>
-  <data name="EnterYouMessage" xml:space="preserve">
+  <data name="EnterYourMessage" xml:space="preserve">
     <value>✨Введите сообщение которое хотите отправить ниже:</value>
   </data>
   <data name="MainMenu" xml:space="preserve">
     <value>😁 Привет, {0}! Ты попал в бота для обращения к кулеру. Ориентируйся по кнопкам ниже.</value>
+  </data>
+  <data name="MaximumLengthExceeded" xml:space="preserve">
+    <value>😢Превышена максимальная длина вводимого текста. Попробуйте ещё раз.</value>
   </data>
   <data name="NotEnoughPrivileges" xml:space="preserve">
     <value>Функция недоступна.</value>
@@ -139,6 +169,12 @@
     <value>😔Вы можете удалить тикет только раз в 10 часов. 
 
 Последний тикет был создан {0}</value>
+  </data>
+  <data name="TicketAlreadyBeenAnswered" xml:space="preserve">
+    <value>😢На данный тикет уже ответил один из администраторов.</value>
+  </data>
+  <data name="TicketCameForYou" xml:space="preserve">
+    <value>👍К вам поступил тикет. Чтобы посмотреть его, нажмите на кнопку ниже:</value>
   </data>
   <data name="TicketDeleteConfirmed" xml:space="preserve">
     <value>Вы уверены что хотите удалить обращение?</value>
@@ -157,6 +193,15 @@
   </data>
   <data name="TicketNotFound" xml:space="preserve">
     <value>Тикет не найден😢</value>
+  </data>
+  <data name="TicketReplySuccesfully" xml:space="preserve">
+    <value>Вы ответили на тикет. Тикет прочитан.</value>
+  </data>
+  <data name="TicketsForAdminNotFound" xml:space="preserve">
+    <value>😢К вам пока не было обращений</value>
+  </data>
+  <data name="TicketsSendedForAdmin" xml:space="preserve">
+    <value>Тикеты которые вам отправляли: </value>
   </data>
   <data name="TicketSuccesfullyDeleted" xml:space="preserve">
     <value>✅Тикет успешно удалён</value>

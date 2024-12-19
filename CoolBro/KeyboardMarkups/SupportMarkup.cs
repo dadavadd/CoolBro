@@ -5,7 +5,7 @@ namespace CoolBro.KeyboardMarkups;
 
 public partial class ReplyMarkup
 {
-    public static InlineKeyboardMarkup GoBackToFromSupport = new(
+    public static readonly InlineKeyboardMarkup GoBackToFromSupport = new(
     [
         [
             InlineKeyboardButton.WithCallbackData(Buttons.CreateTicket, "CreateSupportTicket"),
@@ -16,17 +16,17 @@ public partial class ReplyMarkup
         ]
     ]);
 
-    public static InlineKeyboardMarkup GoBackOrDeleteTicket = new(
+    public static readonly InlineKeyboardMarkup GoBackOrDeleteTicket = new(
     [
         [
             InlineKeyboardButton.WithCallbackData(Buttons.DeleteTicket, "DeleteTicket")
         ],
         [
-            InlineKeyboardButton.WithCallbackData(Buttons.GoBackToAccount, "Account"),
+            InlineKeyboardButton.WithCallbackData(Buttons.GoBackToAccount, "MyTickets_0"),
         ]
     ]);
 
-    public static InlineKeyboardMarkup DeleteTicketOrNo = new(
+    public static readonly InlineKeyboardMarkup DeleteTicketOrNo = new(
     [
         [
             InlineKeyboardButton.WithCallbackData(Buttons.Yes, "TicketDeleteConfirmed"),

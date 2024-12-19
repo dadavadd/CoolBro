@@ -7,31 +7,21 @@ using System.Text.RegularExpressions;
 using Telegram.Bot;
 using Telegram.Bot.Types.ReplyMarkups;
 
-namespace CoolBro.UpdateHandlers.Support;
+namespace CoolBro.UpdateHandlers.Admin;
 
-[RequiredRole(Roles.User)]
-public class SupportHandler(
+[RequiredRole(Roles.Admin)]
+public class AdminSupportHandler(
     IMessageRepository messageRepository) : UpdateHandlerBase
 {
-    [CallbackData("Support")]
-    public async Task SupportTicketsHandleAsync()
-    {
-        await Client.SendMessage(
-            chatId: Update.UserId,
-            text: Messages.SupportMenu,
-            replyMarkup: ReplyMarkup.GoBackToFromSupport);
-    }
-
-    [CallbackDataRegex(@"MyTickets_(\d+)")]
-    public async Task MyTisketsHandlerAsync()
+    [CallbackDataRegex(@"AdminTickets_(\d+)")]
+    public async Task HandleUserTicketsAsync()
     {
         int page = int.Parse(
-            Regex.Match(Update.CallbackQuery?.Data!, @"MyTickets_(\d+)").Groups[1].Value
-            );
+            Regex.Match(Update.CallbackQuery?.Data!, @"AdminTickets_(\d+)").Groups[1].Value
+        );
 
         const int pageSize = 5;
-        var tickets = await messageRepository.GetMessagesByTelegramId(
-            Update.UserId,
+        var tickets = await messageRepository.GetAllNoReadMessages(
             take: pageSize,
             skip: page * pageSize
         );
@@ -40,29 +30,29 @@ public class SupportHandler(
         {
             await Client.SendMessage(
                 chatId: Update.UserId,
-                text: Messages.DontHaveTicketsYet,
+                text: Messages.TicketsForAdminNotFound,
                 replyMarkup: ReplyMarkup.GoToMenu);
             return;
         }
 
         var buttons = tickets
-            .Select((t, i) => 
+            .Select((t, i) =>
                 InlineKeyboardButton.WithCallbackData(
-                    $"{page * pageSize + i + 1}", 
-                    $"UserTicket_{t.Id}"))
+                    $"{page * pageSize + i + 1}",
+                    $"AdminTicket_{t.Id}"))
             .ToList();
 
         if (page > 0)
-            buttons.Add(InlineKeyboardButton.WithCallbackData(Buttons.Backward, $"MyTickets_{page - 1}"));
+            buttons.Add(InlineKeyboardButton.WithCallbackData(Buttons.Backward, $"AdminTickets_{page - 1}"));
 
         if (tickets.Count > pageSize)
-            buttons.Add(InlineKeyboardButton.WithCallbackData(Buttons.Forward, $"MyTickets_{page + 1}"));
+            buttons.Add(InlineKeyboardButton.WithCallbackData(Buttons.Forward, $"AdminTickets_{page + 1}"));
 
         buttons.Add(InlineKeyboardButton.WithCallbackData(Buttons.GoBackToAccount, "Account"));
 
         await Client.SendMessage(
             chatId: Update.UserId,
-            text: Messages.YourTickets,
+            text: Messages.TicketsSendedForAdmin,
             replyMarkup: new InlineKeyboardMarkup(buttons.Chunk(2)));
     }
 }

@@ -132,14 +132,26 @@
   <data name="GoBackToAccount" xml:space="preserve">
     <value>⬅ Назад</value>
   </data>
+  <data name="GoToTicket" xml:space="preserve">
+    <value>🔀Перейти к тикету</value>
+  </data>
+  <data name="IsRead" xml:space="preserve">
+    <value>✅Прочитано</value>
+  </data>
   <data name="MyTtickets" xml:space="preserve">
     <value>✨Мои обращения</value>
   </data>
   <data name="No" xml:space="preserve">
     <value>Нет</value>
   </data>
+  <data name="ReplyToTicket" xml:space="preserve">
+    <value>🧳 Ответить</value>
+  </data>
   <data name="Support" xml:space="preserve">
     <value>🎃 Поддержка</value>
+  </data>
+  <data name="TicketsForAdmin" xml:space="preserve">
+    <value>🎇Обращения</value>
   </data>
   <data name="Yes" xml:space="preserve">
     <value>Да</value>

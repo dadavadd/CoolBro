@@ -106,6 +106,24 @@ namespace CoolBro.Resources {
         }
         
         /// <summary>
+        ///   Ищет локализованную строку, похожую на 🔀Перейти к тикету.
+        /// </summary>
+        internal static string GoToTicket {
+            get {
+                return ResourceManager.GetString("GoToTicket", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на ✅Прочитано.
+        /// </summary>
+        internal static string IsRead {
+            get {
+                return ResourceManager.GetString("IsRead", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Ищет локализованную строку, похожую на ✨Мои обращения.
         /// </summary>
         internal static string MyTtickets {
@@ -124,11 +142,29 @@ namespace CoolBro.Resources {
         }
         
         /// <summary>
+        ///   Ищет локализованную строку, похожую на 🧳 Ответить.
+        /// </summary>
+        internal static string ReplyToTicket {
+            get {
+                return ResourceManager.GetString("ReplyToTicket", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Ищет локализованную строку, похожую на 🎃 Поддержка.
         /// </summary>
         internal static string Support {
             get {
                 return ResourceManager.GetString("Support", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на 🎇Обращения.
+        /// </summary>
+        internal static string TicketsForAdmin {
+            get {
+                return ResourceManager.GetString("TicketsForAdmin", resourceCulture);
             }
         }
         

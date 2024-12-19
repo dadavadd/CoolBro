@@ -12,6 +12,6 @@ public class TimeOutCheckService
 
         return lastTicket != null 
             && lastTicket.Any()
-            && (DateTime.UtcNow - lastTicket[0].CreatedAt < timeOut);
+            && (DateTime.UtcNow - lastTicket[0].CreatedAt > timeOut);
     }
 }

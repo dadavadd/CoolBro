@@ -61,6 +61,51 @@ namespace CoolBro.Resources {
         }
         
         /// <summary>
+        ///   Ищет локализованную строку, похожую на ✨Ответ администрации на ваш тикет №{0}
+        ///
+        ///Чтобы посмотреть, нажмите на кнопку ниже:.
+        /// </summary>
+        internal static string AdminResponseForTicket {
+            get {
+                return ResourceManager.GetString("AdminResponseForTicket", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на ID тикета: {0}
+        ///
+        ///Текст тикета: {1}
+        ///
+        ///Дата создания: {2}
+        ///
+        ///Ваш ответ: {3}
+        ///
+        ///Выберите что хотите  с ним сделать:.
+        /// </summary>
+        internal static string AdminTicket {
+            get {
+                return ResourceManager.GetString("AdminTicket", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на 👀 Тикет №{0}
+        ///
+        ///⚫️Текст тикета: {1}
+        ///
+        ///🎇 Прочитано: {2}
+        ///
+        ///🕘 Дата создания: {3}
+        ///
+        ///🙃 Ответ: {4}.
+        /// </summary>
+        internal static string AnswerTicketInfo {
+            get {
+                return ResourceManager.GetString("AnswerTicketInfo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Ищет локализованную строку, похожую на Команда не найдена🤔.
         /// </summary>
         internal static string CommandNotFound {
@@ -81,9 +126,9 @@ namespace CoolBro.Resources {
         /// <summary>
         ///   Ищет локализованную строку, похожую на ✨Введите сообщение которое хотите отправить ниже:.
         /// </summary>
-        internal static string EnterYouMessage {
+        internal static string EnterYourMessage {
             get {
-                return ResourceManager.GetString("EnterYouMessage", resourceCulture);
+                return ResourceManager.GetString("EnterYourMessage", resourceCulture);
             }
         }
         
@@ -93,6 +138,15 @@ namespace CoolBro.Resources {
         internal static string MainMenu {
             get {
                 return ResourceManager.GetString("MainMenu", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на 😢Превышена максимальная длина вводимого текста. Попробуйте ещё раз..
+        /// </summary>
+        internal static string MaximumLengthExceeded {
+            get {
+                return ResourceManager.GetString("MaximumLengthExceeded", resourceCulture);
             }
         }
         
@@ -122,6 +176,24 @@ namespace CoolBro.Resources {
         internal static string TickedDeleteTimedOut {
             get {
                 return ResourceManager.GetString("TickedDeleteTimedOut", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на 😢На данный тикет уже ответил один из администраторов..
+        /// </summary>
+        internal static string TicketAlreadyBeenAnswered {
+            get {
+                return ResourceManager.GetString("TicketAlreadyBeenAnswered", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на 👍К вам поступил тикет. Чтобы посмотреть его, нажмите на кнопку ниже:.
+        /// </summary>
+        internal static string TicketCameForYou {
+            get {
+                return ResourceManager.GetString("TicketCameForYou", resourceCulture);
             }
         }
         
@@ -164,6 +236,33 @@ namespace CoolBro.Resources {
         internal static string TicketNotFound {
             get {
                 return ResourceManager.GetString("TicketNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Вы ответили на тикет. Тикет прочитан..
+        /// </summary>
+        internal static string TicketReplySuccesfully {
+            get {
+                return ResourceManager.GetString("TicketReplySuccesfully", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на 😢К вам пока не было обращений.
+        /// </summary>
+        internal static string TicketsForAdminNotFound {
+            get {
+                return ResourceManager.GetString("TicketsForAdminNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Тикеты которые вам отправляли: .
+        /// </summary>
+        internal static string TicketsSendedForAdmin {
+            get {
+                return ResourceManager.GetString("TicketsSendedForAdmin", resourceCulture);
             }
         }
         

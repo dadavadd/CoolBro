@@ -9,5 +9,5 @@ public interface IUserRepository
     Task<User?> GetByIdAsync(int id);
     Task<User> CreateAsync(User user);
     Task UpdateAsync(User user);
-    Task<IEnumerable<User>> GetAllAsync();
+    Task<IEnumerable<User>> GetAllAsync(Func<User, bool> predicate);
 }

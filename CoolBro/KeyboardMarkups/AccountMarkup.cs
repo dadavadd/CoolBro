@@ -5,13 +5,15 @@ namespace CoolBro.KeyboardMarkups;
 
 public partial class ReplyMarkup
 {
-    public static InlineKeyboardMarkup Account = new(new[]
+    public static readonly InlineKeyboardMarkup Account = new(new[]
     {
         InlineKeyboardButton.WithCallbackData(Buttons.Support, "Support")
     });
 
-    public static InlineKeyboardMarkup GoToMenu = new(new[]
-    {
-        InlineKeyboardButton.WithCallbackData(Buttons.GoBackToAccount, "Account")
-    });
+    public static readonly InlineKeyboardMarkup GoToMenu = new(
+    [
+        [
+            InlineKeyboardButton.WithCallbackData(Buttons.GoBackToAccount, "Account"),
+        ]
+    ]);
 }

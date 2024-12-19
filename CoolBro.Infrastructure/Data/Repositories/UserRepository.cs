@@ -16,12 +16,15 @@ public class UserRepository(ApplicationDbContext context) : RepositoryBase<User>
             .Include(u => u.Session)
             .FirstOrDefaultAsync(u => u.Id == id);
 
+
     public async Task<User> CreateAsync(User user) =>
         await InsertAsync(user);
 
 
-    public async Task<IEnumerable<User>> GetAllAsync() =>
-        await Query
-            .Include(u => u.Session)
-            .ToListAsync();
+    public async Task<IEnumerable<User>> GetAllAsync(Func<User, bool> predicate) =>
+        await Task.Run(() =>
+            Query
+                .Include(u => u.Session)
+                .Where(predicate)
+                .ToList());
 }
