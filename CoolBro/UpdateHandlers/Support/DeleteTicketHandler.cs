@@ -25,11 +25,11 @@ public class DeleteTicketHandler(
     [CallbackData("TicketDeleteConfirmed")]
     public async Task DeleteTicketConfirmedAsync()
     {
-        if (Session.Wrapper.GetOrDefault<int>("TicketId") == 0) return;
-        if (DateTime.Parse(Session.Wrapper.GetOrDefault<string>("TicketCreatedAt")!) == DateTime.MinValue) return;
+        if (Session.Wrapper.GetOrDefault<int>("TicketId") == default) return;
+        if (Session.Wrapper.GetOrDefault<DateTime>("CreatedAt") == default) return;
 
         var ticketId = Session.Wrapper.Get<int>("TicketId");
-        var tickedDateTime = Session.Wrapper.Get<string>("TicketCreatedAt");
+        var tickedDateTime = Session.Wrapper.Get<DateTime>("CreatedAt");
 
         if (!await timeOutCheckService.CheckMessageTimeOutAsync(ticketId, TimeSpan.FromHours(10)))
         {
@@ -37,7 +37,7 @@ public class DeleteTicketHandler(
                 chatId: Update.UserId,
                 text: string.Format(
                     Messages.TickedDeleteTimedOut,
-                    tickedDateTime),
+                    $"{tickedDateTime:yyyy-MM-dd HH:mm}"),
                 replyMarkup: ReplyMarkup.GoToMenu);
             return;
         }

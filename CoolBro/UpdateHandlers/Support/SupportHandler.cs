@@ -89,7 +89,7 @@ public class SupportHandler(IMessageRepository messageRepository) : UpdateHandle
         Session.SetData(new Dictionary<string, object>
         {
             ["TicketId"] = ticketId,
-            ["TicketCreatedAt"] = $"{ticket[0].CreatedAt:yyyy-MM-dd HH:mm}"
+            ["CreatedAt"] = ticket[0].CreatedAt
         });
 
         await Client.SendMessage(
