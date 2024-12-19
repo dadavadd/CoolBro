@@ -22,7 +22,7 @@ public class SupportHandler(IMessageRepository messageRepository) : UpdateHandle
     }
 
     [CallbackDataRegex(@"MyTickets_(\d+)")]
-    public async Task HandleMyTicketsAsync()
+    public async Task MyTisketsHandlerAsync()
     {
         int page = int.Parse(Regex.Match(Update.CallbackQuery?.Data!, @"MyTickets_(\d+)").Groups[1].Value);
 
@@ -47,14 +47,14 @@ public class SupportHandler(IMessageRepository messageRepository) : UpdateHandle
              .Select((ticket, index) =>
                  InlineKeyboardButton.WithCallbackData(
                      $"{(page * pageSize) + index + 1}",
-                     $"ticket_{ticket.Id}"
+                     $"Ticket_{ticket.Id}"
                  )
              ).ToList();
 
         if (page > 0)
             buttons.Add(InlineKeyboardButton.WithCallbackData(Buttons.Backward, $"MyTickets_{page - 1}"));
 
-        if (tickets.Count == pageSize)
+        if (tickets.Count > pageSize)
             buttons.Add(InlineKeyboardButton.WithCallbackData(Buttons.Forward, $"MyTickets_{page + 1}"));
 
         var allButtons = buttons.Concat([InlineKeyboardButton.WithCallbackData(Buttons.GoBackToAccount, "Account")]).ToList();
@@ -67,11 +67,11 @@ public class SupportHandler(IMessageRepository messageRepository) : UpdateHandle
         );
     }
 
-    [CallbackDataRegex(@"ticket_(\d+)")]
+    [CallbackDataRegex(@"Ticket_(\d+)")]
     public async Task HandleSpecificTicketAsync()
     {
         var ticketId = int.Parse(
-            Regex.Match(Update.CallbackQuery!.Data!, @"ticket_(\d+)").Groups[1].Value
+            Regex.Match(Update.CallbackQuery!.Data!, @"Ticket_(\d+)").Groups[1].Value
         );
 
         var ticket = await messageRepository.GetMessagesById(ticketId, take: 1, skip: 0);
@@ -88,7 +88,8 @@ public class SupportHandler(IMessageRepository messageRepository) : UpdateHandle
 
         Session.SetData(new Dictionary<string, object>
         {
-            ["TicketId"] = ticketId
+            ["TicketId"] = ticketId,
+            ["TicketCreatedAt"] = $"{ticket[0].CreatedAt:yyyy-MM-dd HH:mm}"
         });
 
         await Client.SendMessage(

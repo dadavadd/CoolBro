@@ -3,13 +3,12 @@ using CoolBro.Services;
 using Telegram.Bot;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
-using Telegram.Bot.Exceptions;
-using CoolBro.Application;
+using CoolBro.Extensions;
 
 namespace CoolBro.UpdateHandlers;
 
 public class TelegramUpdateHandler(
-    UpdateHandlersServices updateHandlersServices
+    UpdateHandlersService updateHandlersServices
     ) : IUpdateHandler
 {
     public async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)

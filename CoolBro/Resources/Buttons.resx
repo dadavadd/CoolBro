@@ -130,7 +130,7 @@
     <value>Вперёд ➡</value>
   </data>
   <data name="GoBackToAccount" xml:space="preserve">
-    <value>❌Назад</value>
+    <value>⬅ Назад</value>
   </data>
   <data name="MyTtickets" xml:space="preserve">
     <value>✨Мои обращения</value>

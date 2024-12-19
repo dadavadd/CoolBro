@@ -1,6 +1,6 @@
-﻿using CoolBro.Application;
-using CoolBro.Application.Services;
+﻿using CoolBro.Application.Services;
 using CoolBro.Domain.Entities;
+using CoolBro.Extensions;
 using Telegram.Bot;
 
 namespace CoolBro.UpdateHandlers;

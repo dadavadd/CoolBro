@@ -135,6 +135,11 @@
   <data name="SupportMenu" xml:space="preserve">
     <value>Здесь вы можете управлять вашими обращениями, либо написать новое:</value>
   </data>
+  <data name="TickedDeleteTimedOut" xml:space="preserve">
+    <value>😔Вы можете удалить тикет только раз в 10 часов. 
+
+Последний тикет был создан {0}</value>
+  </data>
   <data name="TicketDeleteConfirmed" xml:space="preserve">
     <value>Вы уверены что хотите удалить обращение?</value>
   </data>

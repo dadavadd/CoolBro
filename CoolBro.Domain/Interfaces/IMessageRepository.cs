@@ -1,5 +1,4 @@
-﻿
-using CoolBro.Domain.Entities;
+﻿using CoolBro.Domain.Entities;
 
 namespace CoolBro.Infrastructure.Data.Interfaces;
 

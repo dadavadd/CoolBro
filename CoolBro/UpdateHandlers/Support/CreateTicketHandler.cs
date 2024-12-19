@@ -1,4 +1,5 @@
-﻿using CoolBro.Domain.Attributes;
+﻿using CoolBro.Application.Interfaces;
+using CoolBro.Domain.Attributes;
 using CoolBro.Domain.Enums;
 using CoolBro.Infrastructure.Data.Interfaces;
 using CoolBro.KeyboardMarkups;
@@ -9,17 +10,15 @@ namespace CoolBro.UpdateHandlers.Support;
 
 [RequiredRole(Roles.User)]
 public class CreateTicketHandler(
-    IMessageRepository messageRepository) : UpdateHandlerBase
+    IMessageRepository messageRepository,
+    ITimeOutCheckService timeOutCheckService) : UpdateHandlerBase
 {
     [CallbackData("CreateSupportTicket")]
     public async Task CreateTicketHandlerAsync()
     {
         var lastTicket = await messageRepository.GetMessagesByTelegramId(Update.UserId, 1, 0);
 
-        bool timeOut = lastTicket is null || !lastTicket.Any() || 
-            DateTime.UtcNow - lastTicket[0]!.CreatedAt <= TimeSpan.FromHours(10);
-
-        if (!timeOut)
+        if (!await timeOutCheckService.CheckMessageTimeOutAsync(lastTicket![0].Id, TimeSpan.FromHours(10)))
         {
             await Client.SendMessage(
                 chatId: Update.UserId,

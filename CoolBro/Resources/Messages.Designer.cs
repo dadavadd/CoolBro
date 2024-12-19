@@ -115,6 +115,17 @@ namespace CoolBro.Resources {
         }
         
         /// <summary>
+        ///   Ищет локализованную строку, похожую на 😔Вы можете удалить тикет только раз в 10 часов. 
+        ///
+        ///Последний тикет был создан {0}.
+        /// </summary>
+        internal static string TickedDeleteTimedOut {
+            get {
+                return ResourceManager.GetString("TickedDeleteTimedOut", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Ищет локализованную строку, похожую на Вы уверены что хотите удалить обращение?.
         /// </summary>
         internal static string TicketDeleteConfirmed {

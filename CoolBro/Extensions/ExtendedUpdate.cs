@@ -1,7 +1,7 @@
 ﻿using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
-namespace CoolBro.Application;
+namespace CoolBro.Extensions;
 
 public class ExtendedUpdate : Update
 {

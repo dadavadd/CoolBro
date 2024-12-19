@@ -97,7 +97,7 @@ namespace CoolBro.Resources {
         }
         
         /// <summary>
-        ///   Ищет локализованную строку, похожую на ❌Назад.
+        ///   Ищет локализованную строку, похожую на ⬅ Назад.
         /// </summary>
         internal static string GoBackToAccount {
             get {

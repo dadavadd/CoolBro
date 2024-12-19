@@ -1,8 +1,8 @@
-﻿using CoolBro.Application;
-using CoolBro.Application.Services;
+﻿using CoolBro.Application.Services;
 using CoolBro.Domain.Attributes;
 using CoolBro.Domain.Entities;
 using CoolBro.Domain.Enums;
+using CoolBro.Extensions;
 using CoolBro.Infrastructure.Data.Interfaces;
 using CoolBro.KeyboardMarkups;
 using CoolBro.Resources;
@@ -14,7 +14,7 @@ using Telegram.Bot;
 
 namespace CoolBro.Services;
 
-public class UpdateHandlersServices(
+public class UpdateHandlersService(
     IServiceScopeFactory serviceScopeFactory,
     ITelegramBotClient client,
     IUserRepository userRepository,
@@ -120,7 +120,7 @@ public class UpdateHandlersServices(
 
         if (user == null)
         {
-            user = new User
+            user = new()
             {
                 TelegramId = update.UserId,
                 Username = update.Username ?? $"user_{update.UserId}",
@@ -139,13 +139,12 @@ public class UpdateHandlersServices(
 
         if (session == null)
         {
-            session = new State
+            session = new()
             {
                 UserId = user.Id,
                 User = user,
                 CurrentState = "Start"
             };
-
             await sessionRepository.SetUserSessionAsync(session);
         }
 

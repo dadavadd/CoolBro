@@ -4,13 +4,15 @@ using CoolBro.Infrastructure;
 using CoolBro.Services;
 using Telegram.Bot.Polling;
 using CoolBro.UpdateHandlers;
+using CoolBro.Application;
 
 
 
 IServiceCollection services = new ServiceCollection();
 services.AddInfrastructure();
-services.AddSingleton<ITelegramBotClient, TelegramBotClient>(t => new(token: ""));
-services.AddSingleton<UpdateHandlersServices>();
+services.AddApplication();
+services.AddSingleton<ITelegramBotClient, TelegramBotClient>(t => new(token: "8179305311:AAG-F4TiSJD4ogbhcANYb2H0N7yTrnHJ67M"));
+services.AddSingleton<UpdateHandlersService>();
 services.AddSingleton<IUpdateHandler, TelegramUpdateHandler>();
 
 using var buildProvider = services.BuildServiceProvider();

@@ -7,15 +7,12 @@ public class SessionManager(
     ISessionRepository sessionRepository, 
     State session)
 {
-    private readonly SessionWrapper _sessionWrapper = new(sessionRepository, session);
-    
     public string CurrentState => session.CurrentState;
-    public SessionWrapper Wrapper => _sessionWrapper;
+    public SessionWrapper Wrapper => new(sessionRepository, session);
 
     public async Task SetStateAsync(string state)
     {
         session.CurrentState = state;
-
         await sessionRepository.SetUserSessionAsync(session);
     }
 
@@ -25,14 +22,14 @@ public class SessionManager(
         {
             foreach (var (key, value) in stateData)
             {
-                _sessionWrapper.Set(key, value);
+                Wrapper.Set(key, value);
             }
         }
     }
 
     public async Task ClearStateAsync()
     {
-        _sessionWrapper.Clear();
+        Wrapper.Clear();
         await sessionRepository.SetUserSessionAsync(session);
     }
 }
