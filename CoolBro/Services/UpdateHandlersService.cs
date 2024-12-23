@@ -7,6 +7,7 @@ using CoolBro.Infrastructure.Data.Interfaces;
 using CoolBro.KeyboardMarkups;
 using CoolBro.Resources;
 using CoolBro.UpdateHandlers;
+using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Reflection;
@@ -20,7 +21,9 @@ public class UpdateHandlersService(
     ITelegramBotClient client,
     IUserRepository userRepository,
     ISessionRepository sessionRepository,
-    ILogger<UpdateHandlersService> logger)
+    ILogger<UpdateHandlersService> logger,
+    IValidator<User> userValidator,
+    IValidator<State> stateValidator)
 {
     private static readonly IReadOnlyCollection<Type> UpdateHandlers = Assembly
         .GetExecutingAssembly()
@@ -137,8 +140,15 @@ public class UpdateHandlersService(
                 TelegramId = update.UserId,
                 Username = update.Username ?? $"user_{update.UserId}",
                 Role = Roles.User,
+                CreatedAt = DateTime.UtcNow,
                 Messages = new List<Message>()
             };
+
+            var validationResult = await userValidator.ValidateAsync(user);
+
+            if (!validationResult.IsValid)
+                throw new ValidationException(validationResult.Errors);
+
             user = await userRepository.CreateAsync(user);
         }
 
@@ -157,6 +167,12 @@ public class UpdateHandlersService(
                 User = user,
                 CurrentState = "Start"
             };
+            
+            var validationResult = await stateValidator.ValidateAsync(session);
+
+            if (!validationResult.IsValid)
+                throw new ValidationException(validationResult.Errors);
+
             await sessionRepository.SetUserSessionAsync(session);
         }
 

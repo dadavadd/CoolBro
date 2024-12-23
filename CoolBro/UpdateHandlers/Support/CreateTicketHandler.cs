@@ -1,9 +1,11 @@
 ﻿using CoolBro.Application.Interfaces;
 using CoolBro.Domain.Attributes;
+using CoolBro.Domain.Entities;
 using CoolBro.Domain.Enums;
 using CoolBro.Infrastructure.Data.Interfaces;
 using CoolBro.KeyboardMarkups;
 using CoolBro.Resources;
+using FluentValidation;
 using Telegram.Bot;
 using Telegram.Bot.Types.ReplyMarkups;
 
@@ -13,7 +15,8 @@ namespace CoolBro.UpdateHandlers.Support;
 public class CreateTicketHandler(
     IMessageRepository messageRepository,
     ITimeOutCheckService timeOutCheckService,
-    IAdminService adminService) : UpdateHandlerBase
+    IAdminService adminService,
+    IValidator<Message> messageValidator) : UpdateHandlerBase
 {
     [CallbackData("CreateSupportTicket")]
     public async Task CreateTicketHandlerAsync()
@@ -63,11 +66,21 @@ public class CreateTicketHandler(
         var createdAt = Session.Wrapper.Get<DateTime>("CreatedAt");
         var messageText = Update.Message!.Text!;
 
-        if (messageText.Length > 1000)
+        var message = new Message
+        {
+            UserId = User.Id,
+            Content = Update.Message!.Text!,
+            CreatedAt = createdAt,
+            IsRead = false
+        };
+
+        var validateResult = await messageValidator.ValidateAsync(message);
+
+        if (!validateResult.IsValid)
         {
             await Client.SendMessage(
                 chatId: Update.UserId,
-                text: Messages.MaximumLengthExceeded,
+                text: validateResult.ToString()!,
                 replyMarkup: ReplyMarkup.GoToMenu);
 
             await Session.ClearStateAsync();
@@ -75,13 +88,7 @@ public class CreateTicketHandler(
             return;
         }
 
-        var message = await messageRepository.CreateMessageAsync(new()
-        {
-            UserId = User.Id,
-            Content = Update.Message!.Text!,
-            CreatedAt = createdAt,
-            IsRead = false
-        });
+        var createdMessage = await messageRepository.CreateMessageAsync(message);
 
         await Client.SendMessage(
             chatId: Update.UserId,
@@ -89,12 +96,13 @@ public class CreateTicketHandler(
             replyMarkup: ReplyMarkup.GoToMenu);
 
         var admins = await adminService.GetAdmins();
+
         await Task.WhenAll(admins.Select(a =>
             Client.SendMessage(
                 chatId: a.TelegramId,
                 text: Messages.TicketCameForYou,
                 replyMarkup: new InlineKeyboardMarkup(
-                    InlineKeyboardButton.WithCallbackData(Buttons.GoToTicket, $"AdminTicket_{message.Id}")))));
+                    InlineKeyboardButton.WithCallbackData(Buttons.GoToTicket, $"AdminTicket_{createdMessage.Id}")))));
 
         await Session.ClearStateAsync();
         await Session.SetStateAsync("Start");

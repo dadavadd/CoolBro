@@ -1,0 +1,1604 @@
+﻿using Telegram.Bot;
+using Microsoft.Extensions.DependencyInjection;
+using CoolBro.Infrastructure;
+using CoolBro.Services;
+using Telegram.Bot.Polling;
+using CoolBro.UpdateHandlers;
+using CoolBro.Application;
+using Microsoft.Extensions.Configuration;
+using Microsoft.EntityFrameworkCore;
+using Serilog;
+using Microsoft.Extensions.Logging;
+
+
+
+var configuration = new ConfigurationBuilder()
+    .SetBasePath(Directory.GetCurrentDirectory())
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    .Build();
+
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(configuration)
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    .WriteTo.File("logs/coolbro-.txt", rollingInterval: RollingInterval.Day)
+    .CreateLogger();
+
+
+IServiceCollection services = new ServiceCollection();
+
+services.AddInfrastructure(configuration, options =>
+{
+    options.UseLoggerFactory(LoggerFactory.Create(builder => builder.AddSerilog()))
+           .EnableSensitiveDataLogging()
+           .LogTo(message => Log.Debug(message), 
+           [DbLoggerCategory.Database.Command.Name]);
+});
+
+services.AddApplication();
+
+services.AddSingleton<ITelegramBotClient, TelegramBotClient>(t =>
+    new(token: configuration["Telegram:BotToken"]!));
+services.AddSingleton<UpdateHandlersService>();
+services.AddSingleton<IUpdateHandler, TelegramUpdateHandler>();
+
+services.AddLogging(loggingBuilder =>
+{
+    loggingBuilder.ClearProviders();
+    loggingBuilder.AddSerilog(dispose: true);
+});
+
+
+try
+{
+    using var buildProvider = services.BuildServiceProvider();
+    var client = buildProvider.GetRequiredService<ITelegramBotClient>();
+    var updateHandler = buildProvider.GetRequiredService<IUpdateHandler>();
+
+    Log.Information("Starting bot...");
+
+    client.StartReceiving(
+        updateHandler: updateHandler,
+        receiverOptions: new() { AllowedUpdates = [] });
+
+    Log.Information("Bot started successfully");
+
+    await Task.Delay(-1);
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Application terminated unexpectedly");
+}
+finally
+{
+    Log.CloseAndFlush();
+}
+using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
+
+namespace CoolBro.Extensions;
+
+public class ExtendedUpdate : Update
+{
+    public ChatType? ChatType =>
+        this switch
+        {
+            { Message: { } message } => message.Chat.Type,
+            { EditedMessage: { } message } => message.Chat.Type,
+            { ChannelPost: { } message } => message.Chat.Type,
+            { EditedChannelPost: { } message } => message.Chat.Type,
+            { InlineQuery: { } inlineQuery } => inlineQuery.ChatType,
+            { CallbackQuery: { } callbackQuery } => callbackQuery.Message?.Chat.Type,
+            { MyChatMember: { } chatMember } => chatMember.Chat.Type,
+            { ChatMember: { } chatMember } => chatMember.Chat.Type,
+            _ => null
+        };
+
+    public long UserId =>
+        this switch
+        {
+            { Message: { } message } => message.From?.Id ?? 0,
+            { EditedMessage: { } message } => message.From?.Id ?? 0,
+            { InlineQuery: { } inlineQuery } => inlineQuery.From.Id,
+            { CallbackQuery: { } callbackQuery } => callbackQuery.From.Id,
+            { MyChatMember: { } chatMember } => chatMember.From.Id,
+            { ChatMember: { } chatMember } => chatMember.From.Id,
+            { ChatJoinRequest: { } chatJoinRequest } => chatJoinRequest.From.Id,
+            _ => 0
+        };
+
+    public long ChatId =>
+        this switch
+        {
+            { Message: { } message } => message.Chat.Id,
+            { EditedMessage: { } message } => message.Chat.Id,
+            { CallbackQuery: { } callbackQuery } => callbackQuery.Message?.Chat.Id ?? 0,
+            { MyChatMember: { } chatMember } => chatMember.Chat.Id,
+            { ChatMember: { } chatMember } => chatMember.Chat.Id,
+            { ChatJoinRequest: { } chatJoinRequest } => chatJoinRequest.Chat.Id,
+            _ => 0
+        };
+
+    public string? Username =>
+        this switch
+        {
+            { Message: { } message } => message.From!.Username,
+            { EditedMessage: { } message } => message.From!.Username,
+            { CallbackQuery: { } callbackQuery } => callbackQuery.Message?.Chat.Username,
+            _ => null
+        };
+
+    public string? FirstName =>
+        this switch
+        {
+            { Message: { } message } => message.From?.FirstName,
+            { EditedMessage: { } message } => message.From?.FirstName,
+            { CallbackQuery: { } callbackQuery } => callbackQuery.Message?.Chat.FirstName,
+            _ => null
+        };
+
+    public string? LastName =>
+        this switch
+        {
+            { Message: { } message } => message.From?.LastName,
+            { EditedMessage: { } message } => message.From?.LastName,
+            { CallbackQuery: { } callbackQuery } => callbackQuery.Message?.Chat.LastName,
+            _ => null
+        };
+}
+using CoolBro.Resources;
+using Telegram.Bot.Types.ReplyMarkups;
+
+namespace CoolBro.KeyboardMarkups;
+
+public partial class ReplyMarkup
+{
+    public static readonly InlineKeyboardMarkup Account = new(
+    [
+        [
+            InlineKeyboardButton.WithCallbackData(Buttons.Support, "Support")
+        ],
+        [
+            InlineKeyboardButton.WithCallbackData("", "")
+        ]
+    ]);
+
+    public static readonly InlineKeyboardMarkup GoToMenu = new(
+    [
+        [
+            InlineKeyboardButton.WithCallbackData(Buttons.GoBackToAccount, "Account"),
+        ]
+    ]);
+}
+using CoolBro.Resources;
+using Telegram.Bot.Types.ReplyMarkups;
+
+namespace CoolBro.KeyboardMarkups;
+
+public partial class ReplyMarkup
+{
+    public static readonly InlineKeyboardMarkup GoBackToFromSupport = new(
+    [
+        [
+            InlineKeyboardButton.WithCallbackData(Buttons.CreateTicket, "CreateSupportTicket"),
+            InlineKeyboardButton.WithCallbackData(Buttons.MyTtickets, "MyTickets_0")
+        ],
+        [
+            InlineKeyboardButton.WithCallbackData(Buttons.GoBackToAccount, "Account"),
+        ]
+    ]);
+
+    public static readonly InlineKeyboardMarkup GoBackOrDeleteTicket = new(
+    [
+        [
+            InlineKeyboardButton.WithCallbackData(Buttons.DeleteTicket, "DeleteTicket")
+        ],
+        [
+            InlineKeyboardButton.WithCallbackData(Buttons.GoBackToAccount, "MyTickets_0"),
+        ]
+    ]);
+
+    public static readonly InlineKeyboardMarkup DeleteTicketOrNo = new(
+    [
+        [
+            InlineKeyboardButton.WithCallbackData(Buttons.Yes, "TicketDeleteConfirmed"),
+            InlineKeyboardButton.WithCallbackData(Buttons.No, "Account")
+        ]
+    ]);
+}
+using CoolBro.Resources;
+using Telegram.Bot.Types.ReplyMarkups;
+
+namespace CoolBro.KeyboardMarkups;
+
+public partial class ReplyMarkup
+{
+    public static readonly InlineKeyboardMarkup AdminButtons = new(
+    [
+        [
+            InlineKeyboardButton.WithCallbackData(Buttons.TicketsForAdmin, "AdminTickets_0")
+        ]
+    ]);
+
+    public static readonly InlineKeyboardMarkup TicketRead = new(
+    [
+        [
+            InlineKeyboardButton.WithCallbackData(Buttons.Backward, "AdminTickets_0"),
+            InlineKeyboardButton.WithCallbackData(Buttons.ReplyToTicket, "ReplyToTicket")
+        ]
+    ]);
+}
+
+using CoolBro.Application.Services;
+using CoolBro.Domain.Attributes;
+using CoolBro.Domain.Entities;
+using CoolBro.Domain.Enums;
+using CoolBro.Extensions;
+using CoolBro.Infrastructure.Data.Interfaces;
+using CoolBro.KeyboardMarkups;
+using CoolBro.Resources;
+using CoolBro.UpdateHandlers;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using System.Reflection;
+using System.Text.RegularExpressions;
+using Telegram.Bot;
+
+namespace CoolBro.Services;
+
+public class UpdateHandlersService(
+    IServiceScopeFactory serviceScopeFactory,
+    ITelegramBotClient client,
+    IUserRepository userRepository,
+    ISessionRepository sessionRepository,
+    ILogger<UpdateHandlersService> logger)
+{
+    private static readonly IReadOnlyCollection<Type> UpdateHandlers = Assembly
+        .GetExecutingAssembly()
+        .GetTypes()
+        .Where(type => typeof(UpdateHandlerBase).IsAssignableFrom(type) 
+            && !type.IsAbstract)
+        .ToArray();
+
+
+    private readonly IServiceProvider _serviceProvider = serviceScopeFactory.CreateScope().ServiceProvider;
+
+    public async Task HandleUpdateAsync(ExtendedUpdate update)
+    {
+        var user = await GetOrCreateUserAsync(update);
+        var session = await GetOrCreateSessionAsync(user);
+        var sessionService = new SessionManager(sessionRepository, session);
+
+        var hasMatchingHandler = false;
+        var hasExecutedHandler = false;
+
+        foreach (var handler in UpdateHandlers)
+        {
+            var handlerInstance = (UpdateHandlerBase)ActivatorUtilities.CreateInstance(_serviceProvider, handler);
+            handlerInstance.Client = client;
+            handlerInstance.Update = update;
+            handlerInstance.User = user;
+            handlerInstance.Session = sessionService;
+
+            var roleAttr = handler.GetCustomAttribute<RequiredRole>();
+
+            if (roleAttr is not null && user.Role < roleAttr.Role)
+                continue;
+
+            hasMatchingHandler = true;
+
+            if (await TryInvokeHandlerMethodAsync(handlerInstance))
+            {
+                hasExecutedHandler = true;
+                break;
+            }
+        }
+
+        if (!hasExecutedHandler)
+        {
+            await client.SendMessage(
+                chatId: update.UserId,
+                text: hasMatchingHandler
+                    ? Messages.CommandNotFound
+                    : Messages.NotEnoughPrivileges, 
+                replyMarkup: ReplyMarkup.GoToMenu);
+        }
+    }
+
+    private async Task<bool> TryInvokeHandlerMethodAsync(UpdateHandlerBase handler)
+    {
+        var methods = handler.GetType().GetMethods()
+            .Where(m => m.GetCustomAttributes().Any())
+            .ToArray();
+
+        foreach (var method in methods)
+        {
+            var actionAttr = method.GetCustomAttribute<ActionAttribute>();
+            if (actionAttr != null && handler.Session.CurrentState == actionAttr.Action)
+            {
+                if (handler.Update.Message != null)
+                {
+                    await (Task)method.Invoke(handler, null)!;
+                    logger.LogInformation("Invoked: {Type}.{Method}",
+                        method.DeclaringType!.Name,
+                        method.Name);
+                    return true;
+                }
+            }
+
+            var callbackAttr = method.GetCustomAttribute<CallbackDataAttribute>();
+            if (callbackAttr != null &&
+                handler.Update.CallbackQuery?.Data == callbackAttr.Command)
+            {
+                await (Task)method.Invoke(handler, null)!;
+
+                logger.LogInformation("Invoked: {Type}.{Method}",
+                        method.DeclaringType!.Name,
+                        method.Name);
+
+                return true;
+            }
+
+            var callbackRegexAttr = method.GetCustomAttribute<CallbackDataRegexAttribute>();
+            if (callbackRegexAttr != null &&
+                handler.Update.CallbackQuery?.Data != null &&
+                Regex.IsMatch(handler.Update.CallbackQuery.Data, callbackRegexAttr.Pattern, callbackRegexAttr.Options))
+            {
+                await (Task)method.Invoke(handler, null)!;
+                
+                logger.LogInformation("Invoked: {Type}.{Method}",
+                    method.DeclaringType!.Name, 
+                    method.Name);
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private async Task<User> GetOrCreateUserAsync(ExtendedUpdate update)
+    {
+        var user = await userRepository.GetByTelegramIdAsync(update.UserId);
+
+        if (user is null)
+        {
+            user = new()
+            {
+                TelegramId = update.UserId,
+                Username = update.Username ?? $"user_{update.UserId}",
+                Role = Roles.User,
+                Messages = new List<Message>()
+            };
+            user = await userRepository.CreateAsync(user);
+        }
+
+        return user;
+    }
+
+    private async Task<State> GetOrCreateSessionAsync(User user)
+    {
+        var session = await sessionRepository.GetUserSessionByIdAsync(user.Id);
+
+        if (session is null)
+        {
+            session = new()
+            {
+                UserId = user.Id,
+                User = user,
+                CurrentState = "Start"
+            };
+            await sessionRepository.SetUserSessionAsync(session);
+        }
+
+        return session;
+    }
+}
+
+using CoolBro.Services;
+using Telegram.Bot;
+using Telegram.Bot.Polling;
+using Telegram.Bot.Types;
+using CoolBro.Extensions;
+
+namespace CoolBro.UpdateHandlers;
+
+public class TelegramUpdateHandler(
+    UpdateHandlersService updateHandlersServices
+    ) : IUpdateHandler
+{
+    public async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var extendedUpdate = new ExtendedUpdate
+            {
+                Message = update.Message,
+                EditedMessage = update.EditedMessage,
+                ChannelPost = update.ChannelPost,
+                EditedChannelPost = update.EditedChannelPost,
+                InlineQuery = update.InlineQuery,
+                CallbackQuery = update.CallbackQuery,
+                MyChatMember = update.MyChatMember,
+                ChatMember = update.ChatMember,
+                ChatJoinRequest = update.ChatJoinRequest
+            };
+
+            await updateHandlersServices.HandleUpdateAsync(extendedUpdate);
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(botClient, ex, HandleErrorSource.HandleUpdateError, cancellationToken);
+        }
+    }
+
+    public async Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, HandleErrorSource source, CancellationToken cancellationToken)
+    {
+        await Console.Out.WriteLineAsync($"Error handling update: {exception}");
+    }
+}
+using CoolBro.Application.Services;
+using CoolBro.Domain.Entities;
+using CoolBro.Extensions;
+using Telegram.Bot;
+
+namespace CoolBro.UpdateHandlers;
+
+public abstract class UpdateHandlerBase
+{
+    public ITelegramBotClient Client { get; set; } = null!;
+    public User User { get; set; } = null!;
+    public SessionManager Session { get; set; } = null!;
+    public ExtendedUpdate Update { get; set; } = null!;
+}
+using CoolBro.Domain.Attributes;
+using CoolBro.Domain.Enums;
+using CoolBro.KeyboardMarkups;
+using CoolBro.Resources;
+using Telegram.Bot;
+using Telegram.Bot.Types.ReplyMarkups;
+
+namespace CoolBro.UpdateHandlers.Account;
+
+public class AccountHandler : UpdateHandlerBase
+{
+    [Action("Start")]
+    [CallbackData("Account")]
+    public async Task HandleAccountAsync()
+    {
+        await Session.SetStateAsync("Start");
+
+        var baseButtons = ReplyMarkup.Account.InlineKeyboard.ToList();
+
+        if (User.Role is Roles.Admin) 
+            baseButtons.AddRange(ReplyMarkup.AdminButtons.InlineKeyboard);
+
+        await Client.SendMessage(
+            chatId: Update.UserId,
+            text: string.Format(
+                Messages.MainMenu,
+                Update.FirstName),
+            replyMarkup: new InlineKeyboardMarkup(baseButtons));
+    }
+}
+using CoolBro.Domain.Attributes;
+using CoolBro.Domain.Enums;
+using CoolBro.Infrastructure.Data.Interfaces;
+using CoolBro.KeyboardMarkups;
+using CoolBro.Resources;
+using System.Text.RegularExpressions;
+using Telegram.Bot;
+using Telegram.Bot.Types.ReplyMarkups;
+
+namespace CoolBro.UpdateHandlers.Admin;
+
+[RequiredRole(Roles.Admin)]
+public class AdminSupportHandler(
+    IMessageRepository messageRepository) : UpdateHandlerBase
+{
+    [CallbackDataRegex(@"AdminTickets_(\d+)")]
+    public async Task HandleUserTicketsAsync()
+    {
+        int page = int.Parse(
+            Regex.Match(Update.CallbackQuery?.Data!, @"AdminTickets_(\d+)").Groups[1].Value
+        );
+
+        const int pageSize = 5;
+        var tickets = await messageRepository.GetAllNoReadMessages(
+            take: pageSize,
+            skip: page * pageSize
+        );
+
+        if (tickets is null || tickets.Count == 0)
+        {
+            await Client.SendMessage(
+                chatId: Update.UserId,
+                text: Messages.TicketsForAdminNotFound,
+                replyMarkup: ReplyMarkup.GoToMenu);
+            return;
+        }
+
+        var buttons = tickets
+            .Select((t, i) =>
+                InlineKeyboardButton.WithCallbackData(
+                    $"{page * pageSize + i + 1}",
+                    $"AdminTicket_{t.Id}"))
+            .ToList();
+
+        if (page > 0)
+            buttons.Add(InlineKeyboardButton.WithCallbackData(Buttons.Backward, $"AdminTickets_{page - 1}"));
+
+        if (tickets.Count > pageSize)
+            buttons.Add(InlineKeyboardButton.WithCallbackData(Buttons.Forward, $"AdminTickets_{page + 1}"));
+
+        buttons.Add(InlineKeyboardButton.WithCallbackData(Buttons.GoBackToAccount, "Account"));
+
+        await Client.SendMessage(
+            chatId: Update.UserId,
+            text: Messages.TicketsSendedForAdmin,
+            replyMarkup: new InlineKeyboardMarkup(buttons.Chunk(2)));
+    }
+}
+using CoolBro.Domain.Attributes;
+using CoolBro.Domain.Enums;
+using CoolBro.Infrastructure.Data.Interfaces;
+using CoolBro.KeyboardMarkups;
+using CoolBro.Resources;
+using System.Text.RegularExpressions;
+using Telegram.Bot;
+
+namespace CoolBro.UpdateHandlers.Admin.Support;
+
+[RequiredRole(Roles.Admin)]
+public class ManageAdminTicketHandler(
+    IMessageRepository messageRepository) : UpdateHandlerBase
+{
+    [CallbackDataRegex(@"AdminTicket_(\d+)")]
+    public async Task HandleAdminTicketAsync()
+    {
+        var ticketId = int.Parse(
+            Regex.Match(Update.CallbackQuery!.Data!, @"AdminTicket_(\d+)").Groups[1].Value
+            );
+
+        var ticket = await messageRepository.GetMessagesById(ticketId, take: 1, skip: 0);
+
+        if (ticket == null || ticket.Count == 0)
+        {
+            await Client.SendMessage(
+                chatId: Update.UserId,
+                text: Messages.TicketNotFound,
+                replyMarkup: ReplyMarkup.GoToMenu);
+            return;
+        }
+
+        Session.SetData(new Dictionary<string, object>
+        {
+            ["TicketId"] = ticketId,
+            ["CreatedAt"] = ticket[0].CreatedAt
+        });
+
+        await Client.SendMessage(
+            chatId: Update.UserId,
+            text: string.Format(
+                Messages.AdminTicket,
+                ticket[0].Id,
+                ticket[0].Content,
+                ticket[0].CreatedAt,
+                ticket[0].Response),
+            replyMarkup: ReplyMarkup.TicketRead);
+    }
+}
+using CoolBro.Domain.Attributes;
+using CoolBro.Domain.Enums;
+using CoolBro.Infrastructure.Data.Interfaces;
+using CoolBro.KeyboardMarkups;
+using CoolBro.Resources;
+using Telegram.Bot;
+using Telegram.Bot.Types.ReplyMarkups;
+
+namespace CoolBro.UpdateHandlers.Admin.Support;
+
+[RequiredRole(Roles.Admin)]
+public class ReplyToTicketHandler(
+    IMessageRepository messageRepository) : UpdateHandlerBase
+{
+    [CallbackData("ReplyToTicket")]
+    public async Task HandleReplyToTicketAsync()
+    {
+        if (Session.Wrapper.GetOrDefault<int>("TicketId") == default) return;
+        if (Session.Wrapper.GetOrDefault<DateTime>("CreatedAt") == default) return;
+
+        var ticketId = Session.Wrapper.Get<int>("TicketId");
+        var ticket = await messageRepository.GetMessagesById(ticketId, 1, 0);
+        
+        if (ticket![0].IsRead)
+        {
+            await Client.SendMessage(
+                chatId: Update.Id,
+                text: Messages.TicketAlreadyBeenAnswered,
+                replyMarkup: ReplyMarkup.GoToMenu);
+
+            return;
+        }
+
+        await Session.SetStateAsync("SupportEntryReplyText");
+
+        await Client.SendMessage(
+            chatId: Update.UserId,
+            text: Messages.EnterYourMessage,
+            replyMarkup: ReplyMarkup.GoToMenu);
+    }
+
+    [Action("SupportEntryReplyText")]
+    public async Task HandleSupportEntryReplyTextAsync()
+    {
+        if (Update.Message?.Text == null ||
+            Session.Wrapper.GetOrDefault<int>("TicketId") == default) return;
+
+        var ticketId = Session.Wrapper.Get<int>("TicketId");
+        var ticket = await messageRepository.GetMessagesById(ticketId, 1, 0);
+
+        ticket![0].IsRead = true;
+        ticket![0].Response = Update.Message.Text;
+
+        await messageRepository.UpdateMessageAsync(ticket![0]);
+
+        await Client.SendMessage(
+            chatId: Update.UserId,
+            text: Messages.TicketReplySuccesfully,
+            replyMarkup: ReplyMarkup.AdminButtons);
+
+        await Client.SendMessage(
+            chatId: ticket![0].User.TelegramId,
+            text: string.Format(
+                Messages.AdminResponseForTicket,
+                ticketId),
+            replyMarkup: new InlineKeyboardMarkup(
+                InlineKeyboardButton.WithCallbackData(Buttons.GoToTicket, $"UserTicket_{ticketId}")));
+
+        await Session.ClearStateAsync();
+        await Session.SetStateAsync("Start");
+    }
+}
+using CoolBro.Application.Interfaces;
+using CoolBro.Domain.Attributes;
+using CoolBro.Domain.Enums;
+using CoolBro.Infrastructure.Data.Interfaces;
+using CoolBro.KeyboardMarkups;
+using CoolBro.Resources;
+using Telegram.Bot;
+using Telegram.Bot.Types.ReplyMarkups;
+
+namespace CoolBro.UpdateHandlers.Support;
+
+[RequiredRole(Roles.User)]
+public class CreateTicketHandler(
+    IMessageRepository messageRepository,
+    ITimeOutCheckService timeOutCheckService,
+    IAdminService adminService) : UpdateHandlerBase
+{
+
+    [CallbackData("CreateSupportTicket")]
+    public async Task CreateTicketHandlerAsync()
+    {
+        var lastTicket = await messageRepository.GetMessagesByTelegramId(Update.UserId, 1, 0);
+
+        if (lastTicket is null || lastTicket.Count == 0)
+        {
+            await AllowToCreateTicketAsync();
+            return;
+        }
+
+        if (!await timeOutCheckService.CheckMessageTimeOutAsync(lastTicket[0].Id, TimeSpan.FromHours(10)))
+        {
+            await Client.SendMessage(
+                chatId: Update.UserId,
+                text: string.Format(
+                    Messages.TicketTimedOut,
+                    $"{lastTicket[0].CreatedAt:yyyy-MM-dd HH:mm}"),
+                replyMarkup: ReplyMarkup.GoToMenu);
+            return;
+        }
+
+        await AllowToCreateTicketAsync();
+    }
+
+    private async Task AllowToCreateTicketAsync()
+    {
+        await Session.SetStateAsync("SupportTextEntry");
+
+        Session.SetData(new Dictionary<string, object>
+        {
+            ["CreatedAt"] = DateTime.UtcNow,
+        });
+
+        await Client.SendMessage(
+            chatId: Update.UserId,
+            text: Messages.EnterYourMessage,
+            replyMarkup: ReplyMarkup.GoToMenu);
+    }
+
+    [Action("SupportTextEntry")]
+    public async Task HandleSupportTextEntryAsync()
+    {
+        if (Session.Wrapper.GetOrDefault<DateTime>("CreatedAt") == default) return;
+
+        var createdAt = Session.Wrapper.Get<DateTime>("CreatedAt");
+        var messageText = Update.Message!.Text!;
+
+        if (messageText.Length > 1000)
+        {
+            await Client.SendMessage(
+                chatId: Update.UserId,
+                text: Messages.MaximumLengthExceeded,
+                replyMarkup: ReplyMarkup.GoToMenu);
+
+            await Session.ClearStateAsync();
+            await Session.SetStateAsync("Start");
+            return;
+        }
+
+        var message = await messageRepository.CreateMessageAsync(new()
+        {
+            UserId = User.Id,
+            Content = messageText,
+            CreatedAt = createdAt,
+            IsRead = false
+        });
+
+        await Client.SendMessage(
+            chatId: Update.UserId,
+            text: Messages.TicketIsCreated,
+            replyMarkup: ReplyMarkup.GoToMenu);
+
+        var admins = await adminService.GetAdmins();
+        await Task.WhenAll(admins.Select(a =>
+            Client.SendMessage(
+                chatId: a.TelegramId,
+                text: Messages.TicketCameForYou,
+                replyMarkup: new InlineKeyboardMarkup(
+                    InlineKeyboardButton.WithCallbackData(Buttons.GoToTicket, $"AdminTicket_{message.Id}")))));
+
+        await Session.ClearStateAsync();
+        await Session.SetStateAsync("Start");
+    }
+}
+using CoolBro.Infrastructure.Data.Interfaces;
+using CoolBro.Domain.Attributes;
+using CoolBro.KeyboardMarkups;
+using CoolBro.Resources;
+using CoolBro.Domain.Enums;
+using Telegram.Bot;
+using CoolBro.Application.Interfaces;
+
+namespace CoolBro.UpdateHandlers.Support;
+
+[RequiredRole(Roles.User)]
+public class DeleteTicketHandler(
+    IMessageRepository messageRepository,
+    ITimeOutCheckService timeOutCheckService) : UpdateHandlerBase
+{
+    [CallbackData("DeleteTicket")]
+    public async Task DeleteTicketHandleAsync()
+    {
+        await Client.SendMessage(
+            chatId: Update.UserId,
+            text: Messages.TicketDeleteConfirmed,
+            replyMarkup: ReplyMarkup.DeleteTicketOrNo);
+    }
+
+    [CallbackData("TicketDeleteConfirmed")]
+    public async Task DeleteTicketConfirmedAsync()
+    {
+        if (Session.Wrapper.GetOrDefault<int>("TicketId") == default) return;
+        if (Session.Wrapper.GetOrDefault<DateTime>("CreatedAt") == default) return;
+
+        var ticketId = Session.Wrapper.Get<int>("TicketId");
+        var tickedDateTime = Session.Wrapper.Get<DateTime>("CreatedAt");
+
+        if (!await timeOutCheckService.CheckMessageTimeOutAsync(ticketId, TimeSpan.FromHours(10)))
+        {
+            await Client.SendMessage(
+                chatId: Update.UserId,
+                text: string.Format(
+                    Messages.TickedDeleteTimedOut,
+                    $"{tickedDateTime:yyyy-MM-dd HH:mm}"),
+                replyMarkup: ReplyMarkup.GoToMenu);
+            return;
+        }
+
+        await messageRepository.DeleteMessageAsync(ticketId);
+
+        await Session.ClearStateAsync();
+
+        await Client.SendMessage(
+            chatId: Update.UserId,
+            text: Messages.TicketSuccesfullyDeleted,
+            replyMarkup: ReplyMarkup.GoToMenu);
+    }
+}
+using CoolBro.Domain.Attributes;
+using CoolBro.Domain.Enums;
+using CoolBro.Infrastructure.Data.Interfaces;
+using CoolBro.KeyboardMarkups;
+using CoolBro.Resources;
+using System.Text.RegularExpressions;
+using Telegram.Bot;
+
+namespace CoolBro.UpdateHandlers.Support;
+
+[RequiredRole(Roles.User)]
+public class ManageUserTicketHandler(
+    IMessageRepository messageRepository) : UpdateHandlerBase
+{
+    [CallbackDataRegex(@"UserTicket_(\d+)")]
+    public async Task HandleSpecificTicketAsync()
+    {
+        var ticketId = int.Parse(
+            Regex.Match(Update.CallbackQuery!.Data!, @"UserTicket_(\d+)").Groups[1].Value
+        );
+
+        var ticket = await messageRepository.GetMessagesById(ticketId, take: 1, skip: 0);
+
+        if (ticket == null || ticket.Count == 0)
+        {
+            await Client.SendMessage(
+                chatId: Update.UserId,
+                text: Messages.TicketNotFound,
+                replyMarkup: ReplyMarkup.AdminButtons);
+            return;
+        }
+
+        Session.SetData(new Dictionary<string, object>
+        {
+            ["TicketId"] = ticketId,
+            ["CreatedAt"] = ticket[0].CreatedAt
+        });
+
+        var replyText = ticket[0].IsRead ? 
+
+            string.Format(
+                Messages.AnswerTicketInfo,
+                ticketId,
+                ticket[0].Content,
+                $"✅{Buttons.Yes}",
+                $"{ticket[0].CreatedAt:yyyy-MM-dd HH:mm}",
+                ticket[0].Response)
+            :            
+            string.Format(
+                Messages.TicketInfo,
+                ticketId,
+                ticket[0].Content,
+                $"❌{Buttons.No}",
+                $"{ticket[0].CreatedAt:yyyy-MM-dd HH:mm}");
+
+
+        await Client.SendMessage(
+            chatId: Update.UserId,
+            text: replyText,
+            replyMarkup: ReplyMarkup.GoBackOrDeleteTicket
+        );
+    }
+}
+using CoolBro.Domain.Attributes;
+using CoolBro.Domain.Enums;
+using CoolBro.Infrastructure.Data.Interfaces;
+using CoolBro.KeyboardMarkups;
+using CoolBro.Resources;
+using System.Text.RegularExpressions;
+using Telegram.Bot;
+using Telegram.Bot.Types.ReplyMarkups;
+
+namespace CoolBro.UpdateHandlers.Support;
+
+[RequiredRole(Roles.User)]
+public class SupportHandler(
+    IMessageRepository messageRepository) : UpdateHandlerBase
+{
+    [CallbackData("Support")]
+    public async Task SupportTicketsHandleAsync()
+    {
+        await Client.SendMessage(
+            chatId: Update.UserId,
+            text: Messages.SupportMenu,
+            replyMarkup: ReplyMarkup.GoBackToFromSupport);
+    }
+
+    [CallbackDataRegex(@"MyTickets_(\d+)")]
+    public async Task MyTisketsHandlerAsync()
+    {
+        int page = int.Parse(
+            Regex.Match(Update.CallbackQuery?.Data!, @"MyTickets_(\d+)").Groups[1].Value
+            );
+
+        const int pageSize = 5;
+        var tickets = await messageRepository.GetMessagesByTelegramId(
+            Update.UserId,
+            take: pageSize,
+            skip: page * pageSize
+        );
+
+        if (tickets is null || tickets.Count == 0)
+        {
+            await Client.SendMessage(
+                chatId: Update.UserId,
+                text: Messages.DontHaveTicketsYet,
+                replyMarkup: ReplyMarkup.GoToMenu);
+            return;
+        }
+
+        var buttons = tickets
+            .Select((t, i) => 
+                InlineKeyboardButton.WithCallbackData(
+                    $"{page * pageSize + i + 1}", 
+                    $"UserTicket_{t.Id}"))
+            .ToList();
+
+        if (page > 0)
+            buttons.Add(InlineKeyboardButton.WithCallbackData(Buttons.Backward, $"MyTickets_{page - 1}"));
+
+        if (tickets.Count > pageSize)
+            buttons.Add(InlineKeyboardButton.WithCallbackData(Buttons.Forward, $"MyTickets_{page + 1}"));
+
+        buttons.Add(InlineKeyboardButton.WithCallbackData(Buttons.GoBackToAccount, "Account"));
+
+        await Client.SendMessage(
+            chatId: Update.UserId,
+            text: Messages.YourTickets,
+            replyMarkup: new InlineKeyboardMarkup(buttons.Chunk(2)));
+    }
+}
+using CoolBro.Application.Interfaces;
+using CoolBro.Application.Services;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace CoolBro.Application;
+
+public static class DependencyInjection
+{
+    public static void AddApplication(this IServiceCollection services)
+    {
+        services.AddAutoMapper(typeof(DependencyInjection).Assembly);
+        services.AddScoped<ITimeOutCheckService, TimeOutCheckService>();
+        services.AddScoped<IAdminService, AdminService>();
+    }
+}
+using CoolBro.Domain.Enums;
+
+namespace CoolBro.Application.DTOs;
+
+public record AdminDto(int Id, long TelegramId, Roles Role);
+using CoolBro.Application.DTOs;
+
+namespace CoolBro.Application.Interfaces;
+
+public interface IAdminService
+{
+    Task<IEnumerable<AdminDto>> GetAdmins();
+}
+namespace CoolBro.Application.Interfaces;
+
+public interface ITimeOutCheckService
+{
+    Task<bool> CheckMessageTimeOutAsync(int entityId, TimeSpan timeOut);
+}
+using AutoMapper;
+using CoolBro.Application.DTOs;
+using CoolBro.Domain.Entities;
+
+namespace CoolBro.Application.Mapper;
+
+public class MapperSetup : Profile
+{
+    public MapperSetup()
+    {
+        CreateMap<User, AdminDto>()
+            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+            .ForMember(dest => dest.TelegramId, opt => opt.MapFrom(src => src.TelegramId))
+            .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.Role));
+    }
+}
+// <autogenerated />
+using System;
+using System.Reflection;
+[assembly: global::System.Runtime.Versioning.TargetFrameworkAttribute(".NETCoreApp,Version=v8.0", FrameworkDisplayName = ".NET 8.0")]
+//------------------------------------------------------------------------------
+// <auto-generated>
+//     Р­С‚РѕС‚ РєРѕРґ СЃРѕР·РґР°РЅ РїСЂРѕРіСЂР°РјРјРѕР№.
+//     РСЃРїРѕР»РЅСЏРµРјР°СЏ РІРµСЂСЃРёСЏ:4.0.30319.42000
+//
+//     РР·РјРµРЅРµРЅРёСЏ РІ СЌС‚РѕРј С„Р°Р№Р»Рµ РјРѕРіСѓС‚ РїСЂРёРІРµСЃС‚Рё Рє РЅРµРїСЂР°РІРёР»СЊРЅРѕР№ СЂР°Р±РѕС‚Рµ Рё Р±СѓРґСѓС‚ РїРѕС‚РµСЂСЏРЅС‹ РІ СЃР»СѓС‡Р°Рµ
+//     РїРѕРІС‚РѕСЂРЅРѕР№ РіРµРЅРµСЂР°С†РёРё РєРѕРґР°.
+// </auto-generated>
+//------------------------------------------------------------------------------
+
+using System;
+using System.Reflection;
+
+[assembly: System.Reflection.AssemblyCompanyAttribute("CoolBro.Application")]
+[assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
+[assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c6c27c48024a830a9cfcd834fac35ee738b23d68")]
+[assembly: System.Reflection.AssemblyProductAttribute("CoolBro.Application")]
+[assembly: System.Reflection.AssemblyTitleAttribute("CoolBro.Application")]
+[assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
+
+// РЎРѕР·РґР°РЅРѕ РєР»Р°СЃСЃРѕРј WriteCodeFragment MSBuild.
+
+// <auto-generated/>
+global using global::System;
+global using global::System.Collections.Generic;
+global using global::System.IO;
+global using global::System.Linq;
+global using global::System.Net.Http;
+global using global::System.Threading;
+global using global::System.Threading.Tasks;
+using CoolBro.Domain.Enums;
+using CoolBro.Application.DTOs;
+using CoolBro.Application.Interfaces;
+using CoolBro.Infrastructure.Data.Interfaces;
+using AutoMapper;
+
+namespace CoolBro.Application.Services;
+
+public class AdminService(
+    IUserRepository userRepository,
+    IMapper mapper) : IAdminService
+{
+    public async Task<IEnumerable<AdminDto>> GetAdmins() =>
+        mapper.Map<IEnumerable<AdminDto>>(await userRepository.GetUsersByRoleAsync(Roles.Admin));
+}
+using CoolBro.Domain.Entities;
+using CoolBro.Infrastructure.Data.Interfaces;
+
+namespace CoolBro.Application.Services;
+
+public class SessionManager(
+    ISessionRepository sessionRepository, 
+    State session)
+{
+    public string CurrentState => session.CurrentState;
+    public SessionWrapper Wrapper => new(sessionRepository, session);
+
+    public async Task SetStateAsync(string state)
+    {
+        session.CurrentState = state;
+        await sessionRepository.SetUserSessionAsync(session);
+    }
+
+    public void SetData(Dictionary<string, object>? stateData = null)
+    {
+        if (stateData != null)
+        {
+            foreach (var (key, value) in stateData)
+            {
+                Wrapper.Set(key, value);
+            }
+        }
+    }
+
+    public async Task ClearStateAsync()
+    {
+        Wrapper.Clear();
+        await sessionRepository.SetUserSessionAsync(session);
+    }
+}
+using CoolBro.Domain.Entities;
+using CoolBro.Infrastructure.Data.Interfaces;
+using System.Text.Json;
+
+namespace CoolBro.Application.Services;
+
+public class SessionWrapper(
+    ISessionRepository sessionRepository,
+    State userState)
+{
+    private static Dictionary<string, string> StateData = new();
+
+    public T Get<T>(string key)
+    {
+        var data = StateData;
+        if (!data.ContainsKey(key))
+            throw new KeyNotFoundException($"Key {key} not found in state data");
+
+        return JsonSerializer.Deserialize<T>(data[key])!;
+    }
+
+    public T? GetOrDefault<T>(string key)
+    {
+        var data = StateData;
+        return data.ContainsKey(key)
+            ? JsonSerializer.Deserialize<T>(data[key])
+            : default;
+    }
+
+    public List<T> GetList<T>(string key)
+    {
+        var value = GetOrDefault<List<T>>(key);
+        return value ?? new List<T>();
+    }
+
+    public void Set<T>(string key, T value)
+    {
+        var data = StateData;
+        data[key] = JsonSerializer.Serialize(value);
+        SaveStateData(data);
+    }
+
+    public void SetList<T>(string key, IEnumerable<T> list)
+    {
+        Set(key, list.ToList());
+    }
+
+    public void Remove(params string[] keys)
+    {
+        var data = StateData;
+        foreach (var key in keys)
+            data.Remove(key);
+        SaveStateData(data);
+    }
+
+    public void Clear()
+    {
+        SaveStateData(new Dictionary<string, string>());
+    }
+
+    public async Task SaveAsync()
+    {
+        await sessionRepository.SetUserSessionAsync(userState);
+    }
+
+    public bool ContainsKey(string key) => StateData.ContainsKey(key);
+
+    private void SaveStateData(Dictionary<string, string> data)
+    {
+        userState.StateData = JsonSerializer.Serialize(data);
+    }
+}
+using CoolBro.Application.Interfaces;
+using CoolBro.Infrastructure.Data.Interfaces;
+
+namespace CoolBro.Application.Services;
+
+public class TimeOutCheckService
+    (IMessageRepository messageRepository): ITimeOutCheckService
+{
+    public async Task<bool> CheckMessageTimeOutAsync(int entityId, TimeSpan timeOut)
+    {
+        var lastTicket = await messageRepository.GetMessagesById(entityId, 1, 0);
+
+        return lastTicket != null 
+            && lastTicket.Any()
+            && (DateTime.UtcNow - lastTicket[0].CreatedAt > timeOut);
+    }
+}
+namespace CoolBro.Domain.Attributes;
+
+public class ActionAttribute : Attribute
+{
+    public string Action { get; }
+
+    public ActionAttribute(string action)
+    {
+        Action = action;
+    }
+}
+namespace CoolBro.Domain.Attributes;
+
+[AttributeUsage(AttributeTargets.Method)]
+public class CallbackDataAttribute : Attribute
+{
+    public string Command { get; }
+
+    public CallbackDataAttribute(string command)
+    {
+        Command = command;
+    }
+}
+using System.Text.RegularExpressions;
+
+namespace CoolBro.Domain.Attributes;
+
+[AttributeUsage(AttributeTargets.Method)]
+public class CallbackDataRegexAttribute : Attribute
+{
+    public string Pattern { get; }
+    public RegexOptions Options { get; }
+
+    public CallbackDataRegexAttribute(string pattern, RegexOptions options = RegexOptions.None)
+    {
+        Pattern = pattern;
+        Options = options;
+    }
+}
+
+
+using CoolBro.Domain.Enums;
+
+namespace CoolBro.Domain.Attributes;
+
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
+public class RequiredRole : Attribute
+{
+    public Roles Role { get; set; }
+
+    public RequiredRole(Roles role)
+    {
+        Role = role;
+    }
+}
+namespace CoolBro.Domain.Entities;
+
+public class Message
+{
+    public int Id { get; set; }
+    public string Content { get; set; } = null!;
+    public DateTime CreatedAt { get; set; }
+    public bool IsRead { get; set; }
+    public string? Response { get; set; }
+
+    public int UserId { get; set; }
+    public User User { get; set; } = null!;
+}
+namespace CoolBro.Domain.Entities;
+
+public class State
+{
+    public int Id { get; set; }
+    public int UserId { get; set; }
+    public User User { get; set; } = null!;
+    public string CurrentState { get; set; } = "Start";
+    public string? StateData { get; set; }
+}
+using CoolBro.Domain.Enums;
+
+namespace CoolBro.Domain.Entities;
+
+public class User
+{
+    public int Id { get; set; }
+    public string Username { get; set; } = null!;
+    public long TelegramId { get; set; }
+    public Roles Role { get; set; } = Roles.User;
+    public State Session { get; set; } = null!;
+    public ICollection<Message> Messages { get; set; } = null!;
+}
+namespace CoolBro.Domain.Enums;
+
+public enum Roles
+{
+    User,
+    Admin
+}
+using CoolBro.Domain.Entities;
+
+namespace CoolBro.Infrastructure.Data.Interfaces;
+
+public interface IMessageRepository
+{
+    Task<List<Message>?> GetMessagesByTelegramId(long telegramId, int take, int skip);
+    Task<List<Message>?> GetMessagesById(int id, int take, int skip);
+
+    Task<List<Message>> GetAllNoReadMessages(int take, int skip);
+    Task<Message> CreateMessageAsync(Message message);
+    Task UpdateMessageAsync(Message message);
+    Task DeleteMessageAsync(int id);
+}
+using CoolBro.Domain.Entities;
+
+namespace CoolBro.Infrastructure.Data.Interfaces;
+
+public interface ISessionRepository
+{
+    Task<State?> GetUserSessionByIdAsync(int userId);
+    Task SetUserSessionAsync(State state);
+}
+
+using CoolBro.Domain.Entities;
+using CoolBro.Domain.Enums;
+
+namespace CoolBro.Infrastructure.Data.Interfaces;
+
+public interface IUserRepository
+{
+    Task<User?> GetByTelegramIdAsync(long telegramId);
+    Task<User?> GetByIdAsync(int id);
+    Task<User> CreateAsync(User user);
+    Task UpdateAsync(User user);
+    Task<IEnumerable<User>> GetUsersByRoleAsync(Roles role);
+}
+// <autogenerated />
+using System;
+using System.Reflection;
+[assembly: global::System.Runtime.Versioning.TargetFrameworkAttribute(".NETCoreApp,Version=v8.0", FrameworkDisplayName = ".NET 8.0")]
+//------------------------------------------------------------------------------
+// <auto-generated>
+//     Р­С‚РѕС‚ РєРѕРґ СЃРѕР·РґР°РЅ РїСЂРѕРіСЂР°РјРјРѕР№.
+//     РСЃРїРѕР»РЅСЏРµРјР°СЏ РІРµСЂСЃРёСЏ:4.0.30319.42000
+//
+//     РР·РјРµРЅРµРЅРёСЏ РІ СЌС‚РѕРј С„Р°Р№Р»Рµ РјРѕРіСѓС‚ РїСЂРёРІРµСЃС‚Рё Рє РЅРµРїСЂР°РІРёР»СЊРЅРѕР№ СЂР°Р±РѕС‚Рµ Рё Р±СѓРґСѓС‚ РїРѕС‚РµСЂСЏРЅС‹ РІ СЃР»СѓС‡Р°Рµ
+//     РїРѕРІС‚РѕСЂРЅРѕР№ РіРµРЅРµСЂР°С†РёРё РєРѕРґР°.
+// </auto-generated>
+//------------------------------------------------------------------------------
+
+using System;
+using System.Reflection;
+
+[assembly: System.Reflection.AssemblyCompanyAttribute("CoolBro.Domain")]
+[assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
+[assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c6c27c48024a830a9cfcd834fac35ee738b23d68")]
+[assembly: System.Reflection.AssemblyProductAttribute("CoolBro.Domain")]
+[assembly: System.Reflection.AssemblyTitleAttribute("CoolBro.Domain")]
+[assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
+
+// РЎРѕР·РґР°РЅРѕ РєР»Р°СЃСЃРѕРј WriteCodeFragment MSBuild.
+
+// <auto-generated/>
+global using global::System;
+global using global::System.Collections.Generic;
+global using global::System.IO;
+global using global::System.Linq;
+global using global::System.Net.Http;
+global using global::System.Threading;
+global using global::System.Threading.Tasks;
+using CoolBro.Infrastructure.Data;
+using CoolBro.Infrastructure.Data.Interfaces;
+using CoolBro.Infrastructure.Data.Repositories;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace CoolBro.Infrastructure;
+
+public static class DependencyInjection
+{
+    public static void AddInfrastructure(
+        this IServiceCollection services,
+        IConfiguration configuration,
+        Action<DbContextOptionsBuilder>? optionsAction = null)
+    {
+        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<ISessionRepository, SessionRepository>();
+        services.AddScoped<IMessageRepository, MessageRepository>();
+
+        services.AddDbContext<ApplicationDbContext>(options =>
+        {
+            options.UseSqlite("Data Source=coolbro.db" /*configuration["DefaultConnection:DefaultConnection"]*/);
+            optionsAction?.Invoke(options);
+        });
+    }
+}
+using CoolBro.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
+
+namespace CoolBro.Infrastructure.Data;
+
+public class ApplicationDbContext(
+    DbContextOptions<ApplicationDbContext> options
+    ) : DbContext(options)
+{
+    public DbSet<User> Users { get; set; }
+    public DbSet<Message> Messages { get; set; }
+    public DbSet<State> Session { get; set; }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
+    }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        base.OnConfiguring(optionsBuilder);
+    }
+}
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Design;
+
+namespace CoolBro.Infrastructure.Data;
+
+public class ApplicationDbContextFactory : IDesignTimeDbContextFactory<ApplicationDbContext>
+{
+    public ApplicationDbContext CreateDbContext(string[] args)
+    {
+        var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
+        optionsBuilder.UseSqlite("Data Source=coolbro.db");
+        return new ApplicationDbContext(optionsBuilder.Options);
+    }
+}
+using CoolBro.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace CoolBro.Infrastructure.Data.Configurations;
+
+public class MessageConfiguration : IEntityTypeConfiguration<Message>
+{
+    public void Configure(EntityTypeBuilder<Message> builder) =>
+        builder.Property(b => b.Content).HasMaxLength(2000);
+}
+using CoolBro.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace CoolBro.Infrastructure.Data.Configurations;
+
+public class StateConfiguration : IEntityTypeConfiguration<State>
+{
+    public void Configure(EntityTypeBuilder<State> builder)
+    {
+        builder.HasOne(t => t.User)
+            .WithOne(t => t.Session)
+            .HasForeignKey<State>(k => k.UserId)
+            .HasPrincipalKey<User>(k => k.Id)
+            .IsRequired();
+    }
+}
+using CoolBro.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace CoolBro.Infrastructure.Data.Configurations;
+
+public class UserConfiguration : IEntityTypeConfiguration<User>
+{
+    public void Configure(EntityTypeBuilder<User> builder)
+    {
+        builder.HasMany(t => t.Messages)
+            .WithOne(u => u.User)
+            .HasForeignKey(k => k.UserId)
+            .HasPrincipalKey(k => k.Id)
+            .IsRequired();
+    }
+}
+using CoolBro.Domain.Entities;
+using CoolBro.Infrastructure.Data.Interfaces;
+using Microsoft.EntityFrameworkCore;
+
+namespace CoolBro.Infrastructure.Data.Repositories;
+
+public class MessageRepository(
+    ApplicationDbContext context) : RepositoryBase<Message>(context), IMessageRepository
+{
+    public async Task<Message> CreateMessageAsync(Message message) =>
+        await InsertAsync(message);
+
+    public async Task<List<Message>?> GetMessagesById(int id, int take, int skip) =>
+        await Query
+        .Where(m => m.Id == id)
+        .OrderBy(m => m.Id)
+        .Skip(skip)
+        .Take(take)
+        .ToListAsync();
+
+    public async Task<List<Message>?> GetMessagesByTelegramId(long telegramId, int take, int skip) =>
+        await Query
+        .Include(m => m.User)
+        .Where(m => m.User.TelegramId == telegramId)
+        .OrderBy(m => m.Id)
+        .Skip(skip)
+        .Take(take)
+        .ToListAsync();
+
+    public async Task<List<Message>> GetAllNoReadMessages(int take, int skip) =>
+        await Query
+        .Include(m => m.User)
+        .Where(m => !m.IsRead)
+        .OrderByDescending(m => m.CreatedAt)
+        .Skip(skip)
+        .Take(take)
+        .ToListAsync();
+
+    public async Task UpdateMessageAsync(Message message) =>
+        await UpdateAsync(message);
+
+    public async Task DeleteMessageAsync(int id) =>
+        await RemoveAsync(await Query.FirstAsync(m => m.Id == id));
+
+}
+using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore;
+using CoolBro.Infrastructure.Data;
+
+namespace CoolBro.Infrastructure.Data.Repositories;
+
+public class RepositoryBase<T> where T : class
+{
+    protected readonly ApplicationDbContext Context;
+    protected DbSet<T> Table { get; }
+    public IQueryable<T> Query { get; }
+
+    protected RepositoryBase(ApplicationDbContext context)
+    {
+        Context = context;
+        Table = context.Set<T>();
+        Query = Table.AsQueryable();
+    }
+
+    public async Task<IDbContextTransaction> BeginTransactionAsync() =>
+        await Context.Database.BeginTransactionAsync();
+
+
+    public async Task UseTransactionAsync(IDbContextTransaction dbTransaction) =>
+        await Context.Database.UseTransactionAsync(dbTransaction.GetDbTransaction());
+
+    public virtual async Task<T> InsertAsync(T entity)
+    {
+        var entry = await Table.AddAsync(entity);
+        await SaveAsync();
+        return entry.Entity;
+    }
+
+    public virtual async Task InsertRangeAsync(IEnumerable<T> entities)
+    {
+        await Table.AddRangeAsync(entities);
+        await SaveAsync();
+    }
+
+    public virtual async Task UpdateAsync(T entity)
+    {
+        Table.Update(entity);
+        await SaveAsync();
+    }
+
+    public virtual async Task RemoveAsync(T entity)
+    {
+        Table.Remove(entity);
+        await SaveAsync();
+    }
+
+    public async Task RemoveAsync(IEnumerable<T> entities)
+    {
+        Table.RemoveRange(entities);
+        await SaveAsync();
+    }
+
+    private async Task SaveAsync() =>
+        await Context.SaveChangesAsync();
+}
+using CoolBro.Domain.Entities;
+using CoolBro.Infrastructure.Data.Interfaces;
+using Microsoft.EntityFrameworkCore;
+
+namespace CoolBro.Infrastructure.Data.Repositories;
+
+public class SessionRepository(
+    ApplicationDbContext context
+    ) : RepositoryBase<State>(context), ISessionRepository
+{
+    public async Task<State?> GetUserSessionByIdAsync(int userId) =>
+        await Query.FirstOrDefaultAsync(u => u.UserId == userId);
+
+    public async Task SetUserSessionAsync(State state) =>
+        await UpdateAsync(state);
+}
+using CoolBro.Domain.Entities;
+using CoolBro.Domain.Enums;
+using CoolBro.Infrastructure.Data.Interfaces;
+using Microsoft.EntityFrameworkCore;
+
+namespace CoolBro.Infrastructure.Data.Repositories;
+
+public class UserRepository(ApplicationDbContext context) : RepositoryBase<User>(context), IUserRepository
+{
+    public async Task<User?> GetByTelegramIdAsync(long telegramId) =>
+        await Query
+            .Include(u => u.Session)
+            .FirstOrDefaultAsync(u => u.TelegramId == telegramId);
+
+    public async Task<User?> GetByIdAsync(int id) =>
+        await Query
+            .Include(u => u.Session)
+            .FirstOrDefaultAsync(u => u.Id == id);
+
+
+    public async Task<User> CreateAsync(User user) =>
+        await InsertAsync(user);
+
+
+    public async Task<IEnumerable<User>> GetUsersByRoleAsync(Roles role) =>
+        await Query.
+        Where(u => u.Role == role)
+        .ToListAsync();
+}
