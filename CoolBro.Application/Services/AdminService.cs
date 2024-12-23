@@ -10,6 +10,6 @@ public class AdminService(
     IUserRepository userRepository,
     IMapper mapper) : IAdminService
 {
-    public async Task<List<AdminDto>> GetAdmins() =>
-        mapper.Map<List<AdminDto>>(await userRepository.GetAllAsync(u => u.Role == Roles.Admin));
+    public async Task<IEnumerable<AdminDto>> GetAdmins() =>
+        mapper.Map<IEnumerable<AdminDto>>(await userRepository.GetUsersByRoleAsync(Roles.Admin));
 }

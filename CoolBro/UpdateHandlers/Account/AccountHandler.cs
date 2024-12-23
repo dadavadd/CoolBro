@@ -13,6 +13,8 @@ public class AccountHandler : UpdateHandlerBase
     [CallbackData("Account")]
     public async Task HandleAccountAsync()
     {
+        await Session.SetStateAsync("Start");
+
         var baseButtons = ReplyMarkup.Account.InlineKeyboard.ToList();
 
         if (User.Role is Roles.Admin) 

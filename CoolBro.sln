@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoolBro.Application", "Cool
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoolBro.Infrastructure", "CoolBro.Infrastructure\CoolBro.Infrastructure.csproj", "{C73F7403-0BE1-4F59-BD47-21B2C500FE78}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{8E9D0A76-E797-4627-877C-5BDEB2CD48A0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{C73F7403-0BE1-4F59-BD47-21B2C500FE78}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C73F7403-0BE1-4F59-BD47-21B2C500FE78}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C73F7403-0BE1-4F59-BD47-21B2C500FE78}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8E9D0A76-E797-4627-877C-5BDEB2CD48A0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8E9D0A76-E797-4627-877C-5BDEB2CD48A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8E9D0A76-E797-4627-877C-5BDEB2CD48A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8E9D0A76-E797-4627-877C-5BDEB2CD48A0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

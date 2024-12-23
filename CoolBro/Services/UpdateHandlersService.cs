@@ -8,6 +8,7 @@ using CoolBro.KeyboardMarkups;
 using CoolBro.Resources;
 using CoolBro.UpdateHandlers;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using Telegram.Bot;
@@ -18,13 +19,14 @@ public class UpdateHandlersService(
     IServiceScopeFactory serviceScopeFactory,
     ITelegramBotClient client,
     IUserRepository userRepository,
-    ISessionRepository sessionRepository)
+    ISessionRepository sessionRepository,
+    ILogger<UpdateHandlersService> logger)
 {
-    private static readonly IEnumerable<Type> UpdateHandlers = Assembly
+    private static readonly IReadOnlyCollection<Type> UpdateHandlers = Assembly
         .GetExecutingAssembly()
         .GetTypes()
-        .Where(type => typeof(UpdateHandlerBase).IsAssignableFrom(type))
-        .Where(type => !type.IsAbstract)
+        .Where(type => typeof(UpdateHandlerBase).IsAssignableFrom(type) 
+            && !type.IsAbstract)
         .ToArray();
 
 
@@ -86,7 +88,9 @@ public class UpdateHandlersService(
                 if (handler.Update.Message != null)
                 {
                     await (Task)method.Invoke(handler, null)!;
-                    await Console.Out.WriteLineAsync($"Invoked: {method.DeclaringType!.Name}.{method.Name}");
+                    logger.LogInformation("Invoked: {Type}.{Method}",
+                        method.DeclaringType!.Name,
+                        method.Name);
                     return true;
                 }
             }
@@ -96,7 +100,11 @@ public class UpdateHandlersService(
                 handler.Update.CallbackQuery?.Data == callbackAttr.Command)
             {
                 await (Task)method.Invoke(handler, null)!;
-                await Console.Out.WriteLineAsync($"Invoked: {method.DeclaringType!.Name}.{method.Name}");
+
+                logger.LogInformation("Invoked: {Type}.{Method}",
+                        method.DeclaringType!.Name,
+                        method.Name);
+
                 return true;
             }
 
@@ -106,7 +114,11 @@ public class UpdateHandlersService(
                 Regex.IsMatch(handler.Update.CallbackQuery.Data, callbackRegexAttr.Pattern, callbackRegexAttr.Options))
             {
                 await (Task)method.Invoke(handler, null)!;
-                await Console.Out.WriteLineAsync($"Invoked: {method.DeclaringType!.Name}.{method.Name}");
+                
+                logger.LogInformation("Invoked: {Type}.{Method}",
+                    method.DeclaringType!.Name, 
+                    method.Name);
+
                 return true;
             }
         }
@@ -118,7 +130,7 @@ public class UpdateHandlersService(
     {
         var user = await userRepository.GetByTelegramIdAsync(update.UserId);
 
-        if (user == null)
+        if (user is null)
         {
             user = new()
             {
@@ -137,7 +149,7 @@ public class UpdateHandlersService(
     {
         var session = await sessionRepository.GetUserSessionByIdAsync(user.Id);
 
-        if (session == null)
+        if (session is null)
         {
             session = new()
             {

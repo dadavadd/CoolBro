@@ -1,4 +1,5 @@
 ﻿using CoolBro.Domain.Entities;
+using CoolBro.Domain.Enums;
 using CoolBro.Infrastructure.Data.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,10 +22,8 @@ public class UserRepository(ApplicationDbContext context) : RepositoryBase<User>
         await InsertAsync(user);
 
 
-    public async Task<IEnumerable<User>> GetAllAsync(Func<User, bool> predicate) =>
-        await Task.Run(() =>
-            Query
-                .Include(u => u.Session)
-                .Where(predicate)
-                .ToList());
+    public async Task<IEnumerable<User>> GetUsersByRoleAsync(Roles role) =>
+        await Query.
+        Where(u => u.Role == role)
+        .ToListAsync();
 }

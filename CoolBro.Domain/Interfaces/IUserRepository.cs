@@ -1,5 +1,6 @@
 ﻿
 using CoolBro.Domain.Entities;
+using CoolBro.Domain.Enums;
 
 namespace CoolBro.Infrastructure.Data.Interfaces;
 
@@ -9,5 +10,5 @@ public interface IUserRepository
     Task<User?> GetByIdAsync(int id);
     Task<User> CreateAsync(User user);
     Task UpdateAsync(User user);
-    Task<IEnumerable<User>> GetAllAsync(Func<User, bool> predicate);
+    Task<IEnumerable<User>> GetUsersByRoleAsync(Roles role);
 }

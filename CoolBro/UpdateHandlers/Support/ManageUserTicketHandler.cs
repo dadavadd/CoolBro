@@ -45,8 +45,7 @@ public class ManageUserTicketHandler(
                 $"✅{Buttons.Yes}",
                 $"{ticket[0].CreatedAt:yyyy-MM-dd HH:mm}",
                 ticket[0].Response)
-            :
-            
+            :            
             string.Format(
                 Messages.TicketInfo,
                 ticketId,

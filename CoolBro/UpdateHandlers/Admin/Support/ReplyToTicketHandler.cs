@@ -67,5 +67,6 @@ public class ReplyToTicketHandler(
                 InlineKeyboardButton.WithCallbackData(Buttons.GoToTicket, $"UserTicket_{ticketId}")));
 
         await Session.ClearStateAsync();
+        await Session.SetStateAsync("Start");
     }
 }

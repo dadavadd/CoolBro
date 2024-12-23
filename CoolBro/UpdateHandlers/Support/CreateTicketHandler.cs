@@ -71,6 +71,7 @@ public class CreateTicketHandler(
                 replyMarkup: ReplyMarkup.GoToMenu);
 
             await Session.ClearStateAsync();
+            await Session.SetStateAsync("Start");
             return;
         }
 
@@ -81,8 +82,6 @@ public class CreateTicketHandler(
             CreatedAt = createdAt,
             IsRead = false
         });
-
-        await Session.ClearStateAsync();
 
         await Client.SendMessage(
             chatId: Update.UserId,
@@ -96,5 +95,8 @@ public class CreateTicketHandler(
                 text: Messages.TicketCameForYou,
                 replyMarkup: new InlineKeyboardMarkup(
                     InlineKeyboardButton.WithCallbackData(Buttons.GoToTicket, $"AdminTicket_{message.Id}")))));
+
+        await Session.ClearStateAsync();
+        await Session.SetStateAsync("Start");
     }
 }
