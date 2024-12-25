@@ -7,7 +7,7 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace CoolBro.UpdateHandlers.Account;
 
-public class AccountHandler : UpdateHandlerBase
+public class AccountHandler() : UpdateHandlerBase
 {
     [Action("Start")]
     [CallbackData("Account")]
@@ -22,7 +22,10 @@ public class AccountHandler : UpdateHandlerBase
 
         await Client.SendMessage(
             chatId: Update.UserId,
-            text: string.Format(Messages.MainMenu, Update.FirstName),
+            text: string.Format(
+                Messages.MainMenu,
+                Update.FirstName,
+                User.Balance!.Balance),
             replyMarkup: new InlineKeyboardMarkup(baseButtons));
     }
 }

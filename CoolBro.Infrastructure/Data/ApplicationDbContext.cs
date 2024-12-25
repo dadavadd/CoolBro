@@ -1,4 +1,5 @@
 ﻿using CoolBro.Domain.Entities;
+using CoolBro.Domain.Entities.UserEntity;
 using Microsoft.EntityFrameworkCore;
 
 namespace CoolBro.Infrastructure.Data;
@@ -10,6 +11,7 @@ public class ApplicationDbContext(
     public DbSet<User> Users { get; set; }
     public DbSet<Message> Messages { get; set; }
     public DbSet<State> Session { get; set; }
+    public DbSet<UserBalance> UserBalances { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

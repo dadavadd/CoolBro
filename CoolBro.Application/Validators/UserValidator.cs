@@ -1,4 +1,4 @@
-﻿using CoolBro.Domain.Entities;
+﻿using CoolBro.Domain.Entities.UserEntity;
 using FluentValidation;
 
 namespace CoolBro.Application.Validators;

@@ -1,5 +1,5 @@
-﻿using CoolBro.Application.Services;
-using CoolBro.Domain.Entities;
+﻿using CoolBro.Application.Services.Session;
+using CoolBro.Domain.Entities.UserEntity;
 using CoolBro.Extensions;
 using Telegram.Bot;
 

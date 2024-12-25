@@ -2,7 +2,7 @@
 using CoolBro.Infrastructure.Data.Interfaces;
 using System.Text.Json;
 
-namespace CoolBro.Application.Services;
+namespace CoolBro.Application.Services.Session;
 
 public class SessionWrapper(
     ISessionRepository sessionRepository,

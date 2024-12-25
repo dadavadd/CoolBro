@@ -61,6 +61,7 @@ public class CreateTicketHandler(
     [Action("SupportTextEntry")]
     public async Task HandleSupportTextEntryAsync()
     {
+        if (Update.Message?.Text == null) return;
         if (Session.Wrapper.GetOrDefault<DateTime>("CreatedAt") == default) return;
 
         var createdAt = Session.Wrapper.Get<DateTime>("CreatedAt");

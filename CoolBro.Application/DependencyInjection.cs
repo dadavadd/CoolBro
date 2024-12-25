@@ -1,7 +1,9 @@
 ﻿using CoolBro.Application.Interfaces;
-using CoolBro.Application.Services;
+using CoolBro.Application.Services.SessionServices;
+using CoolBro.Application.Services.UserServices;
 using CoolBro.Application.Validators;
 using CoolBro.Domain.Entities;
+using CoolBro.Domain.Entities.UserEntity;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -17,5 +19,8 @@ public static class DependencyInjection
         services.AddScoped<IValidator<User>, UserValidator>();
         services.AddScoped<IValidator<Message>, MessageValidator>();
         services.AddScoped<IValidator<State>, StateValidator>();
+
+        services.AddScoped<IUserService, UserService>();
+        services.AddScoped<ISessionService, SessionService>();
     }
 }

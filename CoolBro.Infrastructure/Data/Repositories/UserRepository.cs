@@ -1,4 +1,4 @@
-﻿using CoolBro.Domain.Entities;
+﻿using CoolBro.Domain.Entities.UserEntity;
 using CoolBro.Domain.Enums;
 using CoolBro.Infrastructure.Data.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -10,6 +10,7 @@ public class UserRepository(ApplicationDbContext context) : RepositoryBase<User>
     public async Task<User?> GetByTelegramIdAsync(long telegramId) =>
         await Query
             .Include(u => u.Session)
+            .Include(u => u.Balance)
             .FirstOrDefaultAsync(u => u.TelegramId == telegramId);
 
     public async Task<User?> GetByIdAsync(int id) =>

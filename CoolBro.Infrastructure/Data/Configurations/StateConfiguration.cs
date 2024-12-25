@@ -1,4 +1,5 @@
 ﻿using CoolBro.Domain.Entities;
+using CoolBro.Domain.Entities.UserEntity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

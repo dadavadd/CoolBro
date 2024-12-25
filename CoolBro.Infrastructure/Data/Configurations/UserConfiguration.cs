@@ -1,4 +1,4 @@
-﻿using CoolBro.Domain.Entities;
+﻿using CoolBro.Domain.Entities.UserEntity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -12,6 +12,11 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .WithOne(u => u.User)
             .HasForeignKey(k => k.UserId)
             .HasPrincipalKey(k => k.Id)
+            .IsRequired();
+
+        builder.HasOne(u => u.Balance)
+            .WithOne(u => u.User)
+            .HasForeignKey<UserBalance>(u => u.UserId)
             .IsRequired();
     }
 }

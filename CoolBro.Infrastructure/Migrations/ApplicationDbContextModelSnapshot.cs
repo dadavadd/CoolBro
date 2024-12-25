@@ -25,6 +25,7 @@ namespace CoolBro.Infrastructure.Migrations
 
                     b.Property<string>("Content")
                         .IsRequired()
+                        .HasMaxLength(2000)
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("CreatedAt")
@@ -34,6 +35,9 @@ namespace CoolBro.Infrastructure.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Response")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("TEXT");
 
                     b.Property<int>("UserId")
@@ -52,11 +56,17 @@ namespace CoolBro.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("CurrentState")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("StateData")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("TEXT");
 
                     b.Property<int>("UserId")
@@ -70,17 +80,23 @@ namespace CoolBro.Infrastructure.Migrations
                     b.ToTable("Session");
                 });
 
-            modelBuilder.Entity("CoolBro.Domain.Entities.User", b =>
+            modelBuilder.Entity("CoolBro.Domain.Entities.UserEntity.User", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
 
                     b.Property<int>("Role")
                         .HasColumnType("INTEGER");
 
                     b.Property<long>("TelegramId")
                         .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Username")
                         .IsRequired()
@@ -91,9 +107,35 @@ namespace CoolBro.Infrastructure.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("CoolBro.Domain.Entities.UserEntity.UserBalance", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("Balance")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("UserBalances");
+                });
+
             modelBuilder.Entity("CoolBro.Domain.Entities.Message", b =>
                 {
-                    b.HasOne("CoolBro.Domain.Entities.User", "User")
+                    b.HasOne("CoolBro.Domain.Entities.UserEntity.User", "User")
                         .WithMany("Messages")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -104,7 +146,7 @@ namespace CoolBro.Infrastructure.Migrations
 
             modelBuilder.Entity("CoolBro.Domain.Entities.State", b =>
                 {
-                    b.HasOne("CoolBro.Domain.Entities.User", "User")
+                    b.HasOne("CoolBro.Domain.Entities.UserEntity.User", "User")
                         .WithOne("Session")
                         .HasForeignKey("CoolBro.Domain.Entities.State", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -113,8 +155,21 @@ namespace CoolBro.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("CoolBro.Domain.Entities.User", b =>
+            modelBuilder.Entity("CoolBro.Domain.Entities.UserEntity.UserBalance", b =>
                 {
+                    b.HasOne("CoolBro.Domain.Entities.UserEntity.User", "User")
+                        .WithOne("Balance")
+                        .HasForeignKey("CoolBro.Domain.Entities.UserEntity.UserBalance", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("CoolBro.Domain.Entities.UserEntity.User", b =>
+                {
+                    b.Navigation("Balance");
+
                     b.Navigation("Messages");
 
                     b.Navigation("Session")

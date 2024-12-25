@@ -73,7 +73,7 @@ namespace CoolBro.Infrastructure.Migrations
                     b.ToTable("Session");
                 });
 
-            modelBuilder.Entity("CoolBro.Domain.Entities.User", b =>
+            modelBuilder.Entity("CoolBro.Domain.Entities.UserEntity", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -96,27 +96,27 @@ namespace CoolBro.Infrastructure.Migrations
 
             modelBuilder.Entity("CoolBro.Domain.Entities.Message", b =>
                 {
-                    b.HasOne("CoolBro.Domain.Entities.User", "User")
+                    b.HasOne("CoolBro.Domain.Entities.UserEntity", "UserEntity")
                         .WithMany("Messages")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("User");
+                    b.Navigation("UserEntity");
                 });
 
             modelBuilder.Entity("CoolBro.Domain.Entities.State", b =>
                 {
-                    b.HasOne("CoolBro.Domain.Entities.User", "User")
+                    b.HasOne("CoolBro.Domain.Entities.UserEntity", "UserEntity")
                         .WithOne("Session")
                         .HasForeignKey("CoolBro.Domain.Entities.State", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("User");
+                    b.Navigation("UserEntity");
                 });
 
-            modelBuilder.Entity("CoolBro.Domain.Entities.User", b =>
+            modelBuilder.Entity("CoolBro.Domain.Entities.UserEntity", b =>
                 {
                     b.Navigation("Messages");
 

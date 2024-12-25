@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using CoolBro.Application.DTOs;
-using CoolBro.Domain.Entities;
+using CoolBro.Domain.Entities.UserEntity;
 
 namespace CoolBro.Application.Mapper;
 

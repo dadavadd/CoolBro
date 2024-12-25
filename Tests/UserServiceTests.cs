@@ -4,9 +4,9 @@ using Moq.AutoMock;
 using CoolBro.Application.DTOs;
 using CoolBro.Domain.Enums;
 using AutoMapper;
-using CoolBro.Application.Services;
 using CoolBro.Infrastructure.Data.Interfaces;
-using CoolBro.Domain.Entities;
+using CoolBro.Domain.Entities.UserEntity;
+using CoolBro.Application.Services.User;
 
 namespace Tests;
 

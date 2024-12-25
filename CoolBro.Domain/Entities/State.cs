@@ -1,4 +1,6 @@
-﻿namespace CoolBro.Domain.Entities;
+﻿using CoolBro.Domain.Entities.UserEntity;
+
+namespace CoolBro.Domain.Entities;
 
 public class State : BaseEntity
 {

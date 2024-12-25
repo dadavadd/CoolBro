@@ -1,10 +1,10 @@
 ﻿using CoolBro.Domain.Entities;
 using CoolBro.Infrastructure.Data.Interfaces;
 
-namespace CoolBro.Application.Services;
+namespace CoolBro.Application.Services.Session;
 
 public class SessionManager(
-    ISessionRepository sessionRepository, 
+    ISessionRepository sessionRepository,
     State session)
 {
     public string CurrentState => session.CurrentState;

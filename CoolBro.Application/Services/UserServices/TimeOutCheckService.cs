@@ -1,17 +1,17 @@
 ﻿using CoolBro.Application.Interfaces;
 using CoolBro.Infrastructure.Data.Interfaces;
 
-namespace CoolBro.Application.Services;
+namespace CoolBro.Application.Services.UserServices;
 
 public class TimeOutCheckService
-    (IMessageRepository messageRepository): ITimeOutCheckService
+    (IMessageRepository messageRepository) : ITimeOutCheckService
 {
     public async Task<bool> CheckMessageTimeOutAsync(int entityId, TimeSpan timeOut)
     {
         var lastTicket = await messageRepository.GetMessagesById(entityId, 1, 0);
 
-        return lastTicket != null 
+        return lastTicket != null
             && lastTicket.Any()
-            && (DateTime.UtcNow - lastTicket[0].CreatedAt > timeOut);
+            && DateTime.UtcNow - lastTicket[0].CreatedAt > timeOut;
     }
 }

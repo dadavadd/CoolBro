@@ -4,7 +4,7 @@ using CoolBro.Application.Interfaces;
 using CoolBro.Infrastructure.Data.Interfaces;
 using AutoMapper;
 
-namespace CoolBro.Application.Services;
+namespace CoolBro.Application.Services.UserServices;
 
 public class AdminService(
     IUserRepository userRepository,

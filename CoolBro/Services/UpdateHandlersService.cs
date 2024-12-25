@@ -1,7 +1,6 @@
-﻿using CoolBro.Application.Services;
+﻿using CoolBro.Application.Interfaces;
+using CoolBro.Application.Services.Session;
 using CoolBro.Domain.Attributes;
-using CoolBro.Domain.Entities;
-using CoolBro.Domain.Enums;
 using CoolBro.Extensions;
 using CoolBro.Infrastructure.Data.Interfaces;
 using CoolBro.KeyboardMarkups;
@@ -19,11 +18,10 @@ namespace CoolBro.Services;
 public class UpdateHandlersService(
     IServiceScopeFactory serviceScopeFactory,
     ITelegramBotClient client,
-    IUserRepository userRepository,
     ISessionRepository sessionRepository,
     ILogger<UpdateHandlersService> logger,
-    IValidator<User> userValidator,
-    IValidator<State> stateValidator)
+    IUserService userService,
+    ISessionService sessionService)
 {
     private static readonly IReadOnlyCollection<Type> UpdateHandlers = Assembly
         .GetExecutingAssembly()
@@ -37,9 +35,9 @@ public class UpdateHandlersService(
 
     public async Task HandleUpdateAsync(ExtendedUpdate update)
     {
-        var user = await GetOrCreateUserAsync(update);
-        var session = await GetOrCreateSessionAsync(user);
-        var sessionService = new SessionManager(sessionRepository, session);
+        var user = await userService.GetOrCreateUserAsync(update.UserId, update.Username!);
+        var session = await sessionService.GetOrCreateSessionAsync(user);
+        var sessionManager = new SessionManager(sessionRepository, session);
 
         var hasMatchingHandler = false;
         var hasExecutedHandler = false;
@@ -50,7 +48,7 @@ public class UpdateHandlersService(
             handlerInstance.Client = client;
             handlerInstance.Update = update;
             handlerInstance.User = user;
-            handlerInstance.Session = sessionService;
+            handlerInstance.Session = sessionManager;
 
             var roleAttr = handler.GetCustomAttribute<RequiredRole>();
 
@@ -127,55 +125,5 @@ public class UpdateHandlersService(
         }
 
         return false;
-    }
-
-    private async Task<User> GetOrCreateUserAsync(ExtendedUpdate update)
-    {
-        var user = await userRepository.GetByTelegramIdAsync(update.UserId);
-
-        if (user is null)
-        {
-            user = new()
-            {
-                TelegramId = update.UserId,
-                Username = update.Username ?? $"user_{update.UserId}",
-                Role = Roles.User,
-                CreatedAt = DateTime.UtcNow,
-                Messages = new List<Message>()
-            };
-
-            var validationResult = await userValidator.ValidateAsync(user);
-
-            if (!validationResult.IsValid)
-                throw new ValidationException(validationResult.Errors);
-
-            user = await userRepository.CreateAsync(user);
-        }
-
-        return user;
-    }
-
-    private async Task<State> GetOrCreateSessionAsync(User user)
-    {
-        var session = await sessionRepository.GetUserSessionByIdAsync(user.Id);
-
-        if (session is null)
-        {
-            session = new()
-            {
-                UserId = user.Id,
-                User = user,
-                CurrentState = "Start"
-            };
-            
-            var validationResult = await stateValidator.ValidateAsync(session);
-
-            if (!validationResult.IsValid)
-                throw new ValidationException(validationResult.Errors);
-
-            await sessionRepository.SetUserSessionAsync(session);
-        }
-
-        return session;
     }
 }
