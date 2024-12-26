@@ -16,8 +16,9 @@ public class DeleteTicketHandler(
     [CallbackData("DeleteTicket")]
     public async Task DeleteTicketHandleAsync()
     {
-        await Client.SendMessage(
+        await Client.EditMessageText(
             chatId: Update.UserId,
+            messageId: Update.CallbackQuery!.Message!.MessageId,
             text: Messages.TicketDeleteConfirmed,
             replyMarkup: ReplyMarkup.DeleteTicketOrNo);
     }
@@ -33,8 +34,9 @@ public class DeleteTicketHandler(
 
         if (!await timeOutCheckService.CheckMessageTimeOutAsync(ticketId, TimeSpan.FromHours(10)))
         {
-            await Client.SendMessage(
+            await Client.EditMessageText(
                 chatId: Update.UserId,
+                messageId: Update.CallbackQuery!.Message!.MessageId,
                 text: string.Format(
                     Messages.TickedDeleteTimedOut,
                     $"{tickedDateTime:yyyy-MM-dd HH:mm}"),
@@ -46,8 +48,9 @@ public class DeleteTicketHandler(
 
         await Session.ClearStateAsync();
 
-        await Client.SendMessage(
+        await Client.EditMessageText(
             chatId: Update.UserId,
+            messageId: Update.CallbackQuery!.Message!.MessageId,
             text: Messages.TicketSuccesfullyDeleted,
             replyMarkup: ReplyMarkup.GoToMenu);
     }

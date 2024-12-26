@@ -16,8 +16,9 @@ public class SupportHandler(
     [CallbackData("Support")]
     public async Task SupportTicketsHandleAsync()
     {
-        await Client.SendMessage(
+        await Client.EditMessageText(
             chatId: Update.UserId,
+            messageId: Update.CallbackQuery!.Message!.MessageId,
             text: Messages.SupportMenu,
             replyMarkup: ReplyMarkup.GoBackToFromSupport);
     }
@@ -38,8 +39,9 @@ public class SupportHandler(
 
         if (tickets is null || tickets.Count == 0)
         {
-            await Client.SendMessage(
+            await Client.EditMessageText(
                 chatId: Update.UserId,
+                messageId: Update.CallbackQuery!.Message!.MessageId,
                 text: Messages.DontHaveTicketsYet,
                 replyMarkup: ReplyMarkup.GoToMenu);
             return;
@@ -60,8 +62,9 @@ public class SupportHandler(
 
         buttons.Add(InlineKeyboardButton.WithCallbackData(Buttons.GoBackToAccount, "Account"));
 
-        await Client.SendMessage(
+        await Client.EditMessageText(
             chatId: Update.UserId,
+            messageId: Update.CallbackQuery!.Message!.MessageId,
             text: Messages.YourTickets,
             replyMarkup: new InlineKeyboardMarkup(buttons.Chunk(2)));
     }

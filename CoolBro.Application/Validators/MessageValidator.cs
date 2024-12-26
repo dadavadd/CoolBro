@@ -12,10 +12,6 @@ public class MessageValidator : AbstractValidator<Message>
             .MaximumLength(1000)
             .WithMessage("Message content must not exceed 1000 characters");
 
-        RuleFor(x => x.CreatedAt)
-            .NotEmpty()
-            .LessThanOrEqualTo(DateTime.UtcNow);
-
         RuleFor(x => x.Response)
             .MaximumLength(2000)
             .When(x => x.Response != null);

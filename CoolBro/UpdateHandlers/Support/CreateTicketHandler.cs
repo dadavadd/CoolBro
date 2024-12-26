@@ -31,8 +31,9 @@ public class CreateTicketHandler(
 
         if (!await timeOutCheckService.CheckMessageTimeOutAsync(lastTicket![0].Id, TimeSpan.FromHours(10)))
         {
-            await Client.SendMessage(
+            await Client.EditMessageText(
                 chatId: Update.UserId,
+                messageId: Update.CallbackQuery!.Message!.MessageId,
                 text: string.Format(
                     Messages.TicketTimedOut,
                     $"{lastTicket![0].CreatedAt:yyyy-MM-dd HH:mm}"),
@@ -50,10 +51,12 @@ public class CreateTicketHandler(
         Session.SetData(new Dictionary<string, object>
         {
             ["CreatedAt"] = DateTime.UtcNow,
+            ["BotMessageId"] = Update.CallbackQuery!.Message!.MessageId
         });
 
-        await Client.SendMessage(
+        await Client.EditMessageText(
             chatId: Update.UserId,
+            messageId: Update.CallbackQuery!.Message!.MessageId,
             text: Messages.EnterYourMessage,
             replyMarkup: ReplyMarkup.GoToMenu);
     }
@@ -63,8 +66,15 @@ public class CreateTicketHandler(
     {
         if (Update.Message?.Text == null) return;
         if (Session.Wrapper.GetOrDefault<DateTime>("CreatedAt") == default) return;
+        if (Session.Wrapper.GetOrDefault<int>("BotMessageId") == default) return;
+
+        await Client.DeleteMessage(
+            chatId: Update.UserId,
+            messageId: Update.Message.MessageId);
 
         var createdAt = Session.Wrapper.Get<DateTime>("CreatedAt");
+        var botMessageId = Session.Wrapper.Get<int>("BotMessageId");
+
         var messageText = Update.Message!.Text!;
 
         var message = new Message
@@ -79,8 +89,9 @@ public class CreateTicketHandler(
 
         if (!validateResult.IsValid)
         {
-            await Client.SendMessage(
+            await Client.EditMessageText(
                 chatId: Update.UserId,
+                messageId: botMessageId,
                 text: validateResult.ToString()!,
                 replyMarkup: ReplyMarkup.GoToMenu);
 
@@ -91,8 +102,9 @@ public class CreateTicketHandler(
 
         var createdMessage = await messageRepository.CreateMessageAsync(message);
 
-        await Client.SendMessage(
+        await Client.EditMessageText(
             chatId: Update.UserId,
+            messageId: botMessageId,
             text: Messages.TicketIsCreated,
             replyMarkup: ReplyMarkup.GoToMenu);
 

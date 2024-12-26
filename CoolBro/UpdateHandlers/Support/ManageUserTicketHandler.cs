@@ -23,8 +23,9 @@ public class ManageUserTicketHandler(
 
         if (ticket == null || ticket.Count == 0)
         {
-            await Client.SendMessage(
+            await Client.EditMessageText(
                 chatId: Update.UserId,
+                messageId: Update.CallbackQuery!.Message!.MessageId,
                 text: Messages.TicketNotFound,
                 replyMarkup: ReplyMarkup.AdminButtons);
             return;
@@ -54,8 +55,9 @@ public class ManageUserTicketHandler(
                 $"{ticket[0].CreatedAt:yyyy-MM-dd HH:mm}");
 
 
-        await Client.SendMessage(
+        await Client.EditMessageText(
             chatId: Update.UserId,
+            messageId: Update.CallbackQuery!.Message!.MessageId,
             text: replyText,
             replyMarkup: ReplyMarkup.GoBackOrDeleteTicket
         );

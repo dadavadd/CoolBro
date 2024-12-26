@@ -5,7 +5,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CoolBro.Infrastructure.Data.Repositories;
 
-public class UserRepository(ApplicationDbContext context) : RepositoryBase<User>(context), IUserRepository
+public class UserRepository(
+    ApplicationDbContext context) : RepositoryBase<User>(context), IUserRepository
 {
     public async Task<User?> GetByTelegramIdAsync(long telegramId) =>
         await Query

@@ -20,12 +20,26 @@ public class AccountHandler() : UpdateHandlerBase
         if (User.Role is Roles.Admin) 
             baseButtons.AddRange(ReplyMarkup.AdminButtons.InlineKeyboard);
 
-        await Client.SendMessage(
-            chatId: Update.UserId,
-            text: string.Format(
-                Messages.MainMenu,
-                Update.FirstName,
-                User.Balance!.Balance),
-            replyMarkup: new InlineKeyboardMarkup(baseButtons));
+        if (Update.CallbackQuery != null)
+        {
+            await Client.EditMessageText(
+                chatId: Update.UserId,
+                messageId: Update.CallbackQuery.Message!.MessageId,
+                text: string.Format(
+                    Messages.MainMenu,
+                    Update.FirstName,
+                    User.Balance!.Balance),
+                replyMarkup: new InlineKeyboardMarkup(baseButtons));
+        }
+        else
+        {
+            await Client.SendMessage(
+                chatId: Update.UserId,
+                text: string.Format(
+                    Messages.MainMenu,
+                    Update.FirstName,
+                    User.Balance!.Balance),
+                replyMarkup: new InlineKeyboardMarkup(baseButtons));
+        }
     }
 }

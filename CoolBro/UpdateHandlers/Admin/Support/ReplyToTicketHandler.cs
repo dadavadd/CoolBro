@@ -23,8 +23,9 @@ public class ReplyToTicketHandler(
         
         if (ticket![0].IsRead)
         {
-            await Client.SendMessage(
+            await Client.EditMessageText(
                 chatId: Update.Id,
+                messageId: Update.CallbackQuery!.Message!.MessageId,
                 text: Messages.TicketAlreadyBeenAnswered,
                 replyMarkup: ReplyMarkup.GoToMenu);
 
@@ -33,8 +34,9 @@ public class ReplyToTicketHandler(
 
         await Session.SetStateAsync("SupportEntryReplyText");
 
-        await Client.SendMessage(
+        await Client.EditMessageText(
             chatId: Update.UserId,
+            messageId: Update.CallbackQuery!.Message!.MessageId,
             text: Messages.EnterYourMessage,
             replyMarkup: ReplyMarkup.GoToMenu);
     }
@@ -44,6 +46,13 @@ public class ReplyToTicketHandler(
     {
         if (Update.Message?.Text == null) return;
         if (Session.Wrapper.GetOrDefault<int>("TicketId") == default) return;
+        if (Session.Wrapper.GetOrDefault<int>("BotMessageId") == default) return;
+
+        await Client.DeleteMessage(
+            chatId: Update.UserId,
+            messageId: Update.Message.MessageId);
+
+        var botMessageId = Session.Wrapper.Get<int>("BotMessageId");
 
         var ticketId = Session.Wrapper.Get<int>("TicketId");
         var ticket = await messageRepository.GetMessagesById(ticketId, 1, 0);
@@ -53,8 +62,9 @@ public class ReplyToTicketHandler(
 
         await messageRepository.UpdateMessageAsync(ticket![0]);
 
-        await Client.SendMessage(
+        await Client.EditMessageText(
             chatId: Update.UserId,
+            messageId: botMessageId,
             text: Messages.TicketReplySuccesfully,
             replyMarkup: ReplyMarkup.AdminButtons);
 

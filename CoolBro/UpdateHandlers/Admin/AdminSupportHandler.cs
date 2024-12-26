@@ -28,8 +28,9 @@ public class AdminSupportHandler(
 
         if (tickets is null || tickets.Count == 0)
         {
-            await Client.SendMessage(
+            await Client.EditMessageText(
                 chatId: Update.UserId,
+                messageId: Update.CallbackQuery!.Message!.MessageId,
                 text: Messages.TicketsForAdminNotFound,
                 replyMarkup: ReplyMarkup.GoToMenu);
             return;
@@ -50,8 +51,9 @@ public class AdminSupportHandler(
 
         buttons.Add(InlineKeyboardButton.WithCallbackData(Buttons.GoBackToAccount, "Account"));
 
-        await Client.SendMessage(
+        await Client.EditMessageText(
             chatId: Update.UserId,
+            messageId: Update.CallbackQuery!.Message!.MessageId,
             text: Messages.TicketsSendedForAdmin,
             replyMarkup: new InlineKeyboardMarkup(buttons.Chunk(2)));
     }

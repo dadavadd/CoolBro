@@ -23,8 +23,9 @@ public class ManageAdminTicketHandler(
 
         if (ticket == null || ticket.Count == 0)
         {
-            await Client.SendMessage(
+            await Client.EditMessageText(
                 chatId: Update.UserId,
+                messageId: Update.CallbackQuery!.Message!.MessageId,
                 text: Messages.TicketNotFound,
                 replyMarkup: ReplyMarkup.GoToMenu);
             return;
@@ -33,11 +34,13 @@ public class ManageAdminTicketHandler(
         Session.SetData(new Dictionary<string, object>
         {
             ["TicketId"] = ticketId,
-            ["CreatedAt"] = ticket[0].CreatedAt
+            ["CreatedAt"] = ticket[0].CreatedAt,
+            ["BotMessageId"] = Update.CallbackQuery!.Message!.MessageId
         });
 
-        await Client.SendMessage(
+        await Client.EditMessageText(
             chatId: Update.UserId,
+            messageId: Update.CallbackQuery!.Message!.MessageId,
             text: string.Format(
                 Messages.AdminTicket,
                 ticket[0].Id,
